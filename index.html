@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Workout Tracker">
+<meta name="theme-color" content="#0f0f0f">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiV29ya291dCBUcmFja2VyIiwic2hvcnRfbmFtZSI6IldvcmtvdXRzIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZjBmMGYiLCJ0aGVtZV9jb2xvciI6IiMwZjBmMGYiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3JlY3Qgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnIHJ4PScyMCcgZmlsbD0nJTIzMGYwZjBmJy8lM0UlM0N0ZXh0IHg9JzUwJyB5PSc2OCcgZm9udC1zaXplPSc1NScgdGV4dC1hbmNob3I9J21pZGRsZScgZmlsbD0nJTIzZTk0NTYwJyUzRSVGMCU5RiU4RiU4QiVFRiVCOCU4RiUzQy90ZXh0JTNFJTNDJTJGc3ZnJTNFIiwic2l6ZXMiOiIxNTB4MTUwIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f0f0f'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle' fill='%23e94560'%3E%F0%9F%8F%8B%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<title>Niraly's Workout Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f0f; color: #e0e0e0; }
+  
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 24px 32px; border-bottom: 2px solid #0f3460; }
+  .header h1 { font-size: 28px; color: #e94560; margin-bottom: 4px; }
+  .header p { color: #8899aa; font-size: 14px; }
+  
+  .tabs { display: flex; gap: 0; background: #1a1a2e; border-bottom: 2px solid #0f3460; padding: 0 32px; }
+  .tab { padding: 14px 24px; cursor: pointer; color: #8899aa; font-weight: 500; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab:hover { color: #e0e0e0; }
+  .tab.active { color: #e94560; border-bottom-color: #e94560; }
+  
+  .content { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+  
+  .card { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #0f3460; }
+  .card h3 { color: #e94560; margin-bottom: 12px; font-size: 18px; }
+  
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: #16213e; border-radius: 10px; padding: 16px; text-align: center; border: 1px solid #0f3460; }
+  .stat-number { font-size: 32px; font-weight: 700; color: #e94560; }
+  .stat-label { font-size: 13px; color: #8899aa; margin-top: 4px; }
+  
+  .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .filter-bar select, .filter-bar input { background: #16213e; color: #e0e0e0; border: 1px solid #0f3460; padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+  .filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: #e94560; }
+  
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-lower { background: #1b4332; color: #95d5b2; }
+  .badge-push { background: #3d1f00; color: #ffb347; }
+  .badge-pull { background: #1a1040; color: #b8a9ff; }
+  .badge-core { background: #3d0000; color: #ff9999; }
+  .badge-carry { background: #003d3d; color: #99ffff; }
+  .badge-other { background: #333; color: #aaa; }
+  .badge-editable { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .badge-editable:hover { opacity: 0.8; box-shadow: 0 0 0 2px #e9456066; }
+  
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 12px; color: #8899aa; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #0f3460; }
+  td { padding: 10px 12px; border-bottom: 1px solid #0f346033; font-size: 14px; }
+  tr:hover td { background: #16213e55; }
+  
+  .exercise-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .exercise-card { background: #16213e; border-radius: 10px; padding: 16px; border: 1px solid #0f3460; cursor: pointer; transition: all 0.2s; }
+  .exercise-card:hover { border-color: #e94560; transform: translateY(-2px); }
+  .exercise-card h4 { color: #e0e0e0; margin-bottom: 8px; font-size: 15px; }
+  .exercise-card .meta { color: #8899aa; font-size: 13px; }
+  .exercise-card .weight-info { color: #e94560; font-weight: 600; font-size: 16px; margin-top: 8px; }
+  
+  .chart-container { position: relative; height: 300px; margin-top: 16px; }
+  
+  .gym-mode { background: #0a0a14; }
+  .gym-card { background: #1a1a2e; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 2px solid #0f3460; }
+  .gym-card h2 { color: #e94560; font-size: 24px; margin-bottom: 16px; }
+  .gym-card .last-weight { font-size: 48px; font-weight: 800; color: #e94560; }
+  .gym-card .last-detail { color: #8899aa; font-size: 14px; margin-top: 4px; }
+  .gym-card .suggestion { background: #16213e; padding: 12px 16px; border-radius: 8px; margin-top: 16px; border-left: 3px solid #e94560; }
+  .gym-card .suggestion strong { color: #e94560; }
+  
+  .session-timeline { position: relative; padding-left: 24px; }
+  .session-dot { width: 12px; height: 12px; background: #e94560; border-radius: 50%; position: absolute; left: 0; margin-top: 4px; }
+  .session-entry { padding-bottom: 16px; padding-left: 16px; border-left: 2px solid #0f3460; margin-left: 5px; }
+  
+  .hidden { display: none; }
+  
+  .progress-arrow { font-size: 14px; }
+  .progress-up { color: #52c41a; }
+  .progress-down { color: #ff4d4f; }
+  .progress-same { color: #8899aa; }
+  
+  @media (max-width: 768px) {
+    .content { padding: 12px; }
+    .header { padding: 16px; padding-top: env(safe-area-inset-top, 16px); }
+    .tabs { padding: 0 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab { padding: 12px 14px; white-space: nowrap; font-size: 13px; }
+    .exercise-list { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-card { padding: 12px; }
+    .stat-number { font-size: 24px; }
+    .card { padding: 14px; border-radius: 10px; }
+    .filter-bar select, .filter-bar input { width: 100%; font-size: 16px; padding: 12px 14px; }
+    .filter-bar { flex-direction: column; gap: 8px; }
+    table { font-size: 13px; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    th, td { padding: 8px 10px; white-space: nowrap; }
+
+    /* Gym Mode mobile optimizations */
+    .gym-card { padding: 20px 16px; border-radius: 14px; }
+    .gym-card h2 { font-size: 20px; }
+    .gym-card .last-weight { font-size: 56px; line-height: 1.1; }
+    .gym-card .last-detail { font-size: 15px; }
+    .gym-card .suggestion { font-size: 15px; padding: 14px; margin-top: 20px; }
+    .gym-set-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #0f346033; font-size: 15px; }
+    .gym-set-row span { min-width: 60px; }
+
+    .chart-container { height: 220px; }
+  }
+
+  /* Body map */
+  .muscle-zone { cursor:pointer; transition: all 0.25s ease; stroke: #0f346066; stroke-width: 0.5; }
+  .muscle-zone:hover, .muscle-zone.zone-hover { filter: brightness(1.4); stroke: #e94560; stroke-width: 2; }
+  .muscle-zone.zone-highlighted { filter: brightness(1.3) drop-shadow(0 0 8px rgba(233,69,96,0.6)); stroke: #e94560; stroke-width: 2.5; }
+  .cat-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid #0f3460; background: #16213e; color: #8899aa; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; }
+  .cat-btn:hover, .cat-btn.active { border-color: #e94560; color: #e94560; background: #e9456015; }
+  @media (max-width: 768px) {
+    #bodymap .card { padding: 12px; }
+    #bodyFront, #bodyBack { width: 100% !important; height: auto !important; max-width: 260px !important; }
+  }
+
+  /* PWA install banner */
+  .install-banner { display: none; background: #16213e; padding: 12px 16px; text-align: center; border-bottom: 1px solid #0f3460; }
+  .install-banner.show { display: block; }
+  .install-btn { background: #e94560; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .install-btn:active { opacity: 0.8; }
+
+  /* Bottom nav for mobile */
+  @media (max-width: 768px) {
+    .tabs { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: #1a1a2e; border-top: 2px solid #0f3460; border-bottom: none; padding-bottom: env(safe-area-inset-bottom, 0); justify-content: space-around; }
+    .tab { flex: 1; text-align: center; padding: 10px 8px; font-size: 12px; border-bottom: none; border-top: 3px solid transparent; }
+    .tab.active { border-top-color: #e94560; border-bottom-color: transparent; }
+    body { padding-bottom: 70px; }
+  }
+</style>
+</head>
+<body>
+<div id="installBanner" class="install-banner">
+  <span>Install this app for quick gym access </span>
+  <button class="install-btn" onclick="installApp()">Add to Home Screen</button>
+</div>
+<div class="header">
+  <h1>Workout Tracker</h1>
+  <p>27 sessions tracked from Nov 2025 to Mar 2026</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+  <div class="tab" onclick="showTab('exercises')">Exercises</div>
+  <div class="tab" onclick="showTab('sessions')">Sessions</div>
+  <div class="tab" onclick="showTab('gym')">Gym Mode</div>
+  <div class="tab" onclick="showTab('bodymap')">Body Map</div>
+</div>
+
+<div id="dashboard" class="content">
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="card">
+    <h3>Weight Progression - Top Exercises</h3>
+    <div class="filter-bar">
+      <select id="dashChartExercise" onchange="updateDashChart()"></select>
+    </div>
+    <div class="chart-container"><canvas id="dashChart"></canvas></div>
+  </div>
+  <div class="card">
+    <h3>Category Distribution</h3>
+    <div class="chart-container" style="height:250px"><canvas id="catChart"></canvas></div>
+  </div>
+</div>
+
+<div id="exercises" class="content hidden">
+  <div class="filter-bar">
+    <select id="catFilter" onchange="filterExercises()">
+      <option value="all">All Categories</option>
+      <option value="Lower Body">Lower Body</option>
+      <option value="Upper Body - Push">Upper Body - Push</option>
+      <option value="Upper Body - Pull">Upper Body - Pull</option>
+      <option value="Core">Core</option>
+      <option value="Full Body / Carry">Full Body / Carry</option>
+    </select>
+    <input type="text" id="searchEx" placeholder="Search exercises..." oninput="filterExercises()">
+  </div>
+  <div class="exercise-list" id="exerciseList"></div>
+  <div id="exerciseDetail" class="card hidden" style="margin-top:20px">
+    <h3 id="detailTitle"></h3>
+    <div class="chart-container"><canvas id="detailChart"></canvas></div>
+    <table id="detailTable" style="margin-top:16px"></table>
+  </div>
+</div>
+
+<div id="sessions" class="content hidden">
+  <div class="filter-bar">
+    <select id="sessionFilter" onchange="filterSessions()">
+      <option value="all">All Sessions</option>
+    </select>
+  </div>
+  <div id="sessionsList"></div>
+</div>
+
+<div id="bodymap" class="content hidden">
+  <div class="card">
+    <h3>Muscle Activation Map</h3>
+    <p style="color:#8899aa;font-size:13px;margin-bottom:16px">Hover or tap a muscle to see its name. Click a muscle for exercise details. Select an exercise below to see which muscles it targets.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px" id="bodyMapCatButtons"></div>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="muscleTooltip" style="display:none;position:fixed;z-index:1000;background:rgba(26,26,46,0.95);border:1px solid #e94560;border-radius:8px;padding:8px 14px;pointer-events:none;font-size:13px;color:#e0e0e0;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
+    <div id="tooltipName" style="font-weight:700;color:#e94560;margin-bottom:2px"></div>
+    <div id="tooltipInfo" style="color:#8899aa;font-size:12px"></div>
+  </div>
+
+  <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;align-items:flex-start">
+    <div class="card" style="flex:0 1 auto;text-align:center;padding:16px">
+      <h3 style="margin-bottom:10px">Front View</h3>
+      <svg id="bodyFront" viewBox="0 0 260 600" style="width:260px;height:600px;max-width:100%">
+        <defs>
+          <radialGradient id="skinF" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#1e2240"/><stop offset="100%" stop-color="#161830"/></radialGradient>
+          <radialGradient id="headF" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#1e2240"/><stop offset="100%" stop-color="#161830"/></radialGradient>
+        </defs>
+        <!-- Body base -->
+        <ellipse cx="130" cy="42" rx="28" ry="34" fill="url(#headF)" stroke="#0f3460" stroke-width="0.8"/>
+        <rect x="118" y="72" width="24" height="22" rx="4" fill="#1a1e38"/>
+        <!-- Torso -->
+        <path d="M 82,94 Q 72,96 65,105 L 58,130 L 55,160 L 60,200 L 68,240 Q 72,268 78,280 L 82,288 Q 95,296 115,298 L 130,300 L 145,298 Q 165,296 178,288 L 182,280 Q 188,268 192,240 L 200,200 L 205,160 L 202,130 L 195,105 Q 188,96 178,94 Z" fill="url(#skinF)" stroke="#0f3460" stroke-width="0.8"/>
+        <!-- Arms -->
+        <path d="M 65,105 Q 52,108 44,118 L 34,145 L 28,180 L 24,210 L 18,248 L 12,280 L 8,300 L 14,310 Q 22,316 28,310 L 32,295 L 38,260 L 42,235 L 48,210 L 52,185 L 56,160 L 58,130 Z" fill="url(#skinF)" stroke="#0f3460" stroke-width="0.8"/>
+        <path d="M 195,105 Q 208,108 216,118 L 226,145 L 232,180 L 236,210 L 242,248 L 248,280 L 252,300 L 246,310 Q 238,316 232,310 L 228,295 L 222,260 L 218,235 L 212,210 L 208,185 L 204,160 L 202,130 Z" fill="url(#skinF)" stroke="#0f3460" stroke-width="0.8"/>
+        <!-- Legs -->
+        <path d="M 82,290 L 78,320 L 74,360 L 72,400 L 70,440 L 68,475 L 66,510 L 64,545 L 62,565 L 56,580 L 56,590 L 105,590 L 105,580 L 100,565 L 100,545 L 102,510 L 104,475 L 106,440 L 110,400 L 115,360 L 118,320 L 122,300 Q 112,296 100,294 Z" fill="url(#skinF)" stroke="#0f3460" stroke-width="0.8"/>
+        <path d="M 178,290 L 182,320 L 186,360 L 188,400 L 190,440 L 192,475 L 194,510 L 196,545 L 198,565 L 204,580 L 204,590 L 155,590 L 155,580 L 160,565 L 160,545 L 158,510 L 156,475 L 154,440 L 150,400 L 145,360 L 142,320 L 138,300 Q 148,296 160,294 Z" fill="url(#skinF)" stroke="#0f3460" stroke-width="0.8"/>
+
+        <!-- FRONT MUSCLES (colored by heat in JS, base=muted pink) -->
+        <!-- Deltoids L -->
+        <path class="muscle-zone" data-muscle="shoulders" data-label="Deltoids" d="M 65,105 Q 55,108 48,116 L 42,135 L 48,148 L 58,140 L 64,125 L 68,110 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Deltoids R -->
+        <path class="muscle-zone" data-muscle="shoulders" data-label="Deltoids" d="M 195,105 Q 205,108 212,116 L 218,135 L 212,148 L 202,140 L 196,125 L 192,110 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Pecs L -->
+        <path class="muscle-zone" data-muscle="chest" data-label="Pectoralis Major" d="M 80,108 L 68,112 L 64,128 L 66,148 L 78,158 L 95,162 L 118,158 L 126,148 L 126,118 L 110,108 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Pecs R -->
+        <path class="muscle-zone" data-muscle="chest" data-label="Pectoralis Major" d="M 180,108 L 192,112 L 196,128 L 194,148 L 182,158 L 165,162 L 142,158 L 134,148 L 134,118 L 150,108 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Biceps L -->
+        <path class="muscle-zone" data-muscle="biceps" data-label="Biceps Brachii" d="M 42,148 L 36,165 L 32,190 L 34,205 L 44,210 L 52,200 L 54,180 L 52,160 L 48,148 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Biceps R -->
+        <path class="muscle-zone" data-muscle="biceps" data-label="Biceps Brachii" d="M 218,148 L 224,165 L 228,190 L 226,205 L 216,210 L 208,200 L 206,180 L 208,160 L 212,148 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Forearms L -->
+        <path class="muscle-zone" data-muscle="forearms" data-label="Brachioradialis" d="M 32,210 L 26,235 L 20,262 L 16,285 L 22,292 L 32,288 L 38,265 L 42,240 L 44,215 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Forearms R -->
+        <path class="muscle-zone" data-muscle="forearms" data-label="Brachioradialis" d="M 228,210 L 234,235 L 240,262 L 244,285 L 238,292 L 228,288 L 222,265 L 218,240 L 216,215 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Abs L -->
+        <path class="muscle-zone" data-muscle="core" data-label="Rectus Abdominis" d="M 108,160 L 100,164 L 96,190 L 94,220 L 94,255 L 98,275 L 108,282 L 122,285 L 126,275 L 126,255 L 126,220 L 128,190 L 126,164 L 118,160 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Abs R -->
+        <path class="muscle-zone" data-muscle="core" data-label="Rectus Abdominis" d="M 152,160 L 160,164 L 164,190 L 166,220 L 166,255 L 162,275 L 152,282 L 138,285 L 134,275 L 134,255 L 134,220 L 132,190 L 134,164 L 142,160 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Ab detail lines -->
+        <line x1="130" y1="160" x2="130" y2="280" stroke="#0f3460" stroke-width="0.6" opacity="0.4" pointer-events="none"/>
+        <line x1="98" y1="185" x2="162" y2="185" stroke="#0f3460" stroke-width="0.4" opacity="0.3" pointer-events="none"/>
+        <line x1="98" y1="210" x2="162" y2="210" stroke="#0f3460" stroke-width="0.4" opacity="0.3" pointer-events="none"/>
+        <line x1="98" y1="235" x2="162" y2="235" stroke="#0f3460" stroke-width="0.4" opacity="0.3" pointer-events="none"/>
+        <line x1="100" y1="260" x2="160" y2="260" stroke="#0f3460" stroke-width="0.4" opacity="0.3" pointer-events="none"/>
+        <!-- Obliques L -->
+        <path class="muscle-zone" data-muscle="obliques" data-label="External Oblique" d="M 78,160 L 68,175 L 62,210 L 66,248 L 76,272 L 84,280 L 94,275 L 94,250 L 94,210 L 96,180 L 94,164 L 86,158 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Obliques R -->
+        <path class="muscle-zone" data-muscle="obliques" data-label="External Oblique" d="M 182,160 L 192,175 L 198,210 L 194,248 L 184,272 L 176,280 L 166,275 L 166,250 L 166,210 L 164,180 L 166,164 L 174,158 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Hip Flexors L -->
+        <path class="muscle-zone" data-muscle="hip_flexors" data-label="Hip Flexors" d="M 88,282 L 82,290 L 80,302 L 90,305 L 105,302 L 112,296 L 108,285 L 98,280 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Hip Flexors R -->
+        <path class="muscle-zone" data-muscle="hip_flexors" data-label="Hip Flexors" d="M 172,282 L 178,290 L 180,302 L 170,305 L 155,302 L 148,296 L 152,285 L 162,280 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Quads L -->
+        <path class="muscle-zone" data-muscle="quads" data-label="Quadriceps" d="M 80,305 L 76,330 L 73,365 L 72,400 L 74,430 L 78,440 L 96,442 L 108,438 L 112,428 L 114,400 L 116,365 L 118,330 L 120,305 L 108,300 L 92,298 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Quads R -->
+        <path class="muscle-zone" data-muscle="quads" data-label="Quadriceps" d="M 180,305 L 184,330 L 187,365 L 188,400 L 186,430 L 182,440 L 164,442 L 152,438 L 148,428 L 146,400 L 144,365 L 142,330 L 140,305 L 152,300 L 168,298 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Adductors L -->
+        <path class="muscle-zone" data-muscle="adductors" data-label="Adductors (Gracilis)" d="M 108,300 L 120,305 L 124,330 L 124,370 L 118,400 L 110,405 L 108,385 L 110,350 L 112,320 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Adductors R -->
+        <path class="muscle-zone" data-muscle="adductors" data-label="Adductors (Gracilis)" d="M 152,300 L 140,305 L 136,330 L 136,370 L 142,400 L 150,405 L 152,385 L 150,350 L 148,320 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Shins L -->
+        <path class="muscle-zone" data-muscle="shins" data-label="Tibialis Anterior" d="M 74,448 L 70,475 L 68,510 L 68,540 L 72,555 L 82,558 L 92,555 L 96,540 L 98,510 L 100,475 L 100,448 L 90,444 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Shins R -->
+        <path class="muscle-zone" data-muscle="shins" data-label="Tibialis Anterior" d="M 186,448 L 190,475 L 192,510 L 192,540 L 188,555 L 178,558 L 168,555 L 164,540 L 162,510 L 160,475 L 160,448 L 170,444 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+
+        <!-- Heatmap legend -->
+        <defs><linearGradient id="heatGradF"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#e94560"/></linearGradient></defs>
+        <text x="75" y="590" text-anchor="end" fill="#8899aa" font-size="9">Low</text>
+        <rect x="80" y="583" width="100" height="6" rx="3" fill="url(#heatGradF)"/>
+        <text x="185" y="590" text-anchor="start" fill="#8899aa" font-size="9">High</text>
+      </svg>
+    </div>
+
+    <div class="card" style="flex:0 1 auto;text-align:center;padding:16px">
+      <h3 style="margin-bottom:10px">Back View</h3>
+      <svg id="bodyBack" viewBox="0 0 260 600" style="width:260px;height:600px;max-width:100%">
+        <defs>
+          <radialGradient id="skinB" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#1e2240"/><stop offset="100%" stop-color="#161830"/></radialGradient>
+          <radialGradient id="headB" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="#1e2240"/><stop offset="100%" stop-color="#161830"/></radialGradient>
+        </defs>
+        <!-- Body base -->
+        <ellipse cx="130" cy="42" rx="28" ry="34" fill="url(#headB)" stroke="#0f3460" stroke-width="0.8"/>
+        <rect x="118" y="72" width="24" height="22" rx="4" fill="#1a1e38"/>
+        <path d="M 82,94 Q 72,96 65,105 L 58,130 L 55,160 L 60,200 L 68,240 Q 72,268 78,280 L 82,288 Q 95,296 115,298 L 130,300 L 145,298 Q 165,296 178,288 L 182,280 Q 188,268 192,240 L 200,200 L 205,160 L 202,130 L 195,105 Q 188,96 178,94 Z" fill="url(#skinB)" stroke="#0f3460" stroke-width="0.8"/>
+        <path d="M 65,105 Q 52,108 44,118 L 34,145 L 28,180 L 24,210 L 18,248 L 12,280 L 8,300 L 14,310 Q 22,316 28,310 L 32,295 L 38,260 L 42,235 L 48,210 L 52,185 L 56,160 L 58,130 Z" fill="url(#skinB)" stroke="#0f3460" stroke-width="0.8"/>
+        <path d="M 195,105 Q 208,108 216,118 L 226,145 L 232,180 L 236,210 L 242,248 L 248,280 L 252,300 L 246,310 Q 238,316 232,310 L 228,295 L 222,260 L 218,235 L 212,210 L 208,185 L 204,160 L 202,130 Z" fill="url(#skinB)" stroke="#0f3460" stroke-width="0.8"/>
+        <path d="M 82,290 L 78,320 L 74,360 L 72,400 L 70,440 L 68,475 L 66,510 L 64,545 L 62,565 L 56,580 L 56,590 L 105,590 L 105,580 L 100,565 L 100,545 L 102,510 L 104,475 L 106,440 L 110,400 L 115,360 L 118,320 L 122,300 Q 112,296 100,294 Z" fill="url(#skinB)" stroke="#0f3460" stroke-width="0.8"/>
+        <path d="M 178,290 L 182,320 L 186,360 L 188,400 L 190,440 L 192,475 L 194,510 L 196,545 L 198,565 L 204,580 L 204,590 L 155,590 L 155,580 L 160,565 L 160,545 L 158,510 L 156,475 L 154,440 L 150,400 L 145,360 L 142,320 L 138,300 Q 148,296 160,294 Z" fill="url(#skinB)" stroke="#0f3460" stroke-width="0.8"/>
+
+        <!-- BACK MUSCLES -->
+        <!-- Trapezius -->
+        <path class="muscle-zone" data-muscle="traps" data-label="Trapezius" d="M 118,78 L 108,88 L 88,100 L 78,112 L 82,128 L 94,125 L 110,110 L 130,104 L 150,110 L 166,125 L 178,128 L 182,112 L 172,100 L 152,88 L 142,78 L 130,80 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Rear Delts L -->
+        <path class="muscle-zone" data-muscle="shoulders" data-label="Rear Deltoids" d="M 65,105 Q 55,108 48,116 L 42,135 L 48,148 L 58,140 L 64,125 L 68,110 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Rear Delts R -->
+        <path class="muscle-zone" data-muscle="shoulders" data-label="Rear Deltoids" d="M 195,105 Q 205,108 212,116 L 218,135 L 212,148 L 202,140 L 196,125 L 192,110 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Upper Back L -->
+        <path class="muscle-zone" data-muscle="upper_back" data-label="Upper Back (Infraspinatus)" d="M 90,125 L 82,132 L 80,155 L 88,168 L 105,172 L 125,170 L 130,160 L 130,135 L 115,125 L 100,122 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Upper Back R -->
+        <path class="muscle-zone" data-muscle="upper_back" data-label="Upper Back (Infraspinatus)" d="M 170,125 L 178,132 L 180,155 L 172,168 L 155,172 L 135,170 L 130,160 L 130,135 L 145,125 L 160,122 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Lats L -->
+        <path class="muscle-zone" data-muscle="lats" data-label="Latissimus Dorsi" d="M 70,145 L 62,165 L 60,195 L 62,225 L 68,248 L 80,258 L 92,260 L 96,240 L 92,210 L 88,180 L 85,160 L 80,148 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Lats R -->
+        <path class="muscle-zone" data-muscle="lats" data-label="Latissimus Dorsi" d="M 190,145 L 198,165 L 200,195 L 198,225 L 192,248 L 180,258 L 168,260 L 164,240 L 168,210 L 172,180 L 175,160 L 180,148 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Triceps L -->
+        <path class="muscle-zone" data-muscle="triceps" data-label="Triceps Brachii" d="M 42,148 L 36,168 L 32,195 L 34,210 L 44,215 L 52,205 L 54,185 L 52,162 L 48,148 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Triceps R -->
+        <path class="muscle-zone" data-muscle="triceps" data-label="Triceps Brachii" d="M 218,148 L 224,168 L 228,195 L 226,210 L 216,215 L 208,205 L 206,185 L 208,162 L 212,148 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Lower Back -->
+        <path class="muscle-zone" data-muscle="lower_back" data-label="Lower Back (Erector Spinae)" d="M 100,200 L 92,210 L 88,235 L 90,260 L 96,272 L 110,278 L 130,280 L 150,278 L 164,272 L 170,260 L 172,235 L 168,210 L 160,200 L 145,195 L 130,194 L 115,195 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Glutes L -->
+        <path class="muscle-zone" data-muscle="glutes" data-label="Gluteus Maximus" d="M 75,280 L 68,295 L 68,318 L 76,335 L 92,340 L 110,336 L 118,320 L 120,302 L 112,290 L 100,282 L 88,278 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Glutes R -->
+        <path class="muscle-zone" data-muscle="glutes" data-label="Gluteus Maximus" d="M 185,280 L 192,295 L 192,318 L 184,335 L 168,340 L 150,336 L 142,320 L 140,302 L 148,290 L 160,282 L 172,278 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Hamstrings L -->
+        <path class="muscle-zone" data-muscle="hamstrings" data-label="Hamstrings (Biceps Femoris)" d="M 76,342 L 74,370 L 72,400 L 72,430 L 76,445 L 92,448 L 106,445 L 110,430 L 112,400 L 114,370 L 116,342 L 102,340 L 88,340 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Hamstrings R -->
+        <path class="muscle-zone" data-muscle="hamstrings" data-label="Hamstrings (Biceps Femoris)" d="M 184,342 L 186,370 L 188,400 L 188,430 L 184,445 L 168,448 L 154,445 L 150,430 L 148,400 L 146,370 L 144,342 L 158,340 L 172,340 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Calves L -->
+        <path class="muscle-zone" data-muscle="calves" data-label="Gastrocnemius (Calves)" d="M 72,452 L 68,478 L 66,510 L 68,540 L 74,555 L 86,558 L 98,555 L 102,540 L 104,510 L 104,478 L 102,452 L 90,448 L 78,448 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Calves R -->
+        <path class="muscle-zone" data-muscle="calves" data-label="Gastrocnemius (Calves)" d="M 188,452 L 192,478 L 194,510 L 192,540 L 186,555 L 174,558 L 162,555 L 158,540 L 156,510 L 156,478 L 158,452 L 170,448 L 182,448 Z" fill="#3a1828" stroke="#0f346066" stroke-width="0.5"/>
+        <!-- Spine line -->
+        <line x1="130" y1="80" x2="130" y2="290" stroke="#0f3460" stroke-width="1" opacity="0.4" pointer-events="none"/>
+
+        <!-- Heatmap legend -->
+        <defs><linearGradient id="heatGradB"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#e94560"/></linearGradient></defs>
+        <text x="75" y="590" text-anchor="end" fill="#8899aa" font-size="9">Low</text>
+        <rect x="80" y="583" width="100" height="6" rx="3" fill="url(#heatGradB)"/>
+        <text x="185" y="590" text-anchor="start" fill="#8899aa" font-size="9">High</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Exercise picker -->
+  <div class="card" style="margin-top:16px">
+    <h3>Exercise → Muscle Lookup</h3>
+    <p style="color:#8899aa;font-size:13px;margin-bottom:12px">Select an exercise to highlight the muscles it targets on the body diagram.</p>
+    <div class="filter-bar">
+      <select id="bodyMapExercise" onchange="highlightExerciseMuscles()" style="flex:1;min-width:200px">
+        <option value="">-- Choose an exercise --</option>
+      </select>
+    </div>
+    <div id="exerciseMuscleList" style="margin-top:12px"></div>
+  </div>
+
+  <div id="muscleDetail" class="card hidden" style="margin-top:16px">
+    <h3 id="muscleDetailTitle"></h3>
+    <div id="muscleDetailContent"></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Muscle Group Frequency</h3>
+    <div class="chart-container" style="height:280px"><canvas id="muscleChart"></canvas></div>
+  </div>
+</div>
+
+<div id="gym" class="content hidden gym-mode">
+  <div class="filter-bar">
+    <select id="gymExercise" onchange="updateGymMode()" style="font-size:16px;padding:12px 16px"></select>
+  </div>
+  <div id="gymContent"></div>
+</div>
+
+<script>
+const DATA = {"sessions": [{"date": "2025-11-20", "display_date": "20/11/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "workout", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Resistance Band Squats", "set": 1, "reps": 8, "weight": 15.0, "comment": "", "category": "Lower Body"}, {"exercise": "Resistance Band Squats", "set": 1, "reps": 10, "weight": 15.0, "comment": "", "category": "Lower Body"}, {"exercise": "Resistance Band Squats", "set": 1, "reps": 10, "weight": 15.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Bicep Curl - Resistance Band", "set": 1, "reps": 0, "weight": 15.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bicep Curl - Resistance Band", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bicep Curl - Resistance Band", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Frontal Raises", "set": 1, "reps": 12, "weight": 3.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Frontal Raises", "set": 2, "reps": 12, "weight": 3.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Frontal Raises", "set": 3, "reps": 10, "weight": 5.0, "comment": "", "category": "Upper Body - Push"}], "finisher": [{"exercise": "High Plank", "set": 1, "reps": 1, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Wall Sit (wall squat)", "set": 1, "reps": 1, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2025-11-24", "display_date": "24/11/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "workout", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat", "set": 1, "reps": 8, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 2, "reps": 10, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 3, "reps": 8, "weight": 10.0, "comment": "Back pain", "category": "Lower Body"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 10, "weight": 13.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 2, "reps": 10, "weight": 13.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 3, "reps": 10, "weight": 13.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 0, "weight": 18.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 10, "weight": 18.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 10, "weight": 18.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Bird Dog", "set": 1, "reps": 30, "weight": 0.0, "comment": "", "category": "Core"}]}, {"date": "2025-11-26", "display_date": "26/11/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "workout", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Shoulder Press - Machine", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Shoulder Press - Machine", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Shoulder Press - Machine", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Lat Pull - Pronated", "set": 1, "reps": 10, "weight": 16.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 2, "reps": 12, "weight": 16.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 3, "reps": 10, "weight": 21.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Leg Press", "set": 1, "reps": 10, "weight": 44.0, "comment": "", "category": "Lower Body"}, {"exercise": "Leg Press", "set": 2, "reps": 12, "weight": 44.0, "comment": "", "category": "Lower Body"}, {"exercise": "Leg Press", "set": 3, "reps": 12, "weight": 44.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 10, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 2, "reps": 10, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 3, "reps": 10, "weight": 20.0, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Burpees", "set": 1, "reps": 20, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2025-11-28", "display_date": "28/11/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Hip Thrusters", "set": 1, "reps": 8, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hip Thrusters", "set": 2, "reps": 10, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hip Thrusters", "set": 3, "reps": 8, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 0, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 410, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 0, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Chest Press - Dumbbell", "set": 1, "reps": 10, "weight": 5.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Chest Press - Dumbbell", "set": 2, "reps": 12, "weight": 5.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Chest Press - Dumbbell", "set": 3, "reps": 8, "weight": 7.5, "comment": "", "category": "Upper Body - Push"}], "finisher": [{"exercise": "Medicine Ball Throw", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "with Rotation", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2025-12-03", "display_date": "03/12/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Nee", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "workout", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Barbell Back Squat", "set": 1, "reps": 8, "weight": 15.0, "comment": "-", "category": "Lower Body"}, {"exercise": "Barbell Back Squat", "set": 2, "reps": 10, "weight": 15.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell Back Squat", "set": 3, "reps": 10, "weight": 15.0, "comment": "", "category": "Lower Body"}, {"exercise": "Chest Flies - Cable", "set": 1, "reps": 8, "weight": 15.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Chest Flies - Cable", "set": 2, "reps": 10, "weight": 22.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Chest Flies - Cable", "set": 3, "reps": 10, "weight": 26.25, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Kettlebell Swing", "set": 1, "reps": 20, "weight": 6.0, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Kettlebell Swing", "set": 1, "reps": 30, "weight": 6.0, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Kettlebell Swing", "set": 1, "reps": 415, "weight": 12.0, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 0, "weight": 75.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 0, "weight": 82.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 0, "weight": 82.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Farmer's Walk", "set": 1, "reps": 40, "weight": 12.5, "comment": "", "category": "Full Body / Carry"}]}, {"date": "2025-12-05", "display_date": "05/12/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Reverse Lunges", "set": 1, "reps": 6, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 12, "weight": 13.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 12, "weight": 18.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 12, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Squat", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Seated Cable Row - Pronated", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Cable Row - Pronated", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Cable Row - Pronated", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Elbow Plank", "set": 1, "reps": 20, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2025-12-08", "display_date": "08/12/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 0, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 0, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Chest Press - Dumbbell", "set": 1, "reps": 8, "weight": 7.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Chest Press - Dumbbell", "set": 2, "reps": 8, "weight": 7.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Chest Press - Dumbbell", "set": 3, "reps": 8, "weight": 7.5, "comment": "", "category": "Upper Body - Push"}], "finisher": [{"exercise": "Sit Ups", "set": 1, "reps": 20, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2025-12-12", "display_date": "12/12/2025", "warmup": [{"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Shoulder Mobility Work", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Standing Hip Rotation", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat", "set": 1, "reps": 10, "weight": 2.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 12, "weight": 2.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat", "set": 1, "reps": 0, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Seated Cable Row - Pronated", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Cable Row - Pronated", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Cable Row - Pronated", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 12, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 0, "weight": 26.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 0, "weight": 26.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Farmer's Walk", "set": 1, "reps": 40, "weight": 15.0, "comment": "", "category": "Full Body / Carry"}]}, {"date": "2025-12-18", "display_date": "18/12/2025", "warmup": [{"exercise": "Band pull aparts (W.", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "rotator cuff warm-up)", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "reach", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "workout", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Romanian Deadlift", "set": 1, "reps": 10, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 2, "reps": 10, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 3, "reps": 10, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 10, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 8, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 8, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Leg Press", "set": 1, "reps": 12, "weight": 44.0, "comment": "", "category": "Lower Body"}, {"exercise": "Leg Press", "set": 2, "reps": 14, "weight": 44.0, "comment": "", "category": "Lower Body"}, {"exercise": "Leg Press", "set": 3, "reps": 14, "weight": 44.0, "comment": "", "category": "Lower Body"}, {"exercise": "Shoulder Press - Machine", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Shoulder Press - Machine", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Shoulder Press - Machine", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Goblet Squat", "set": 1, "reps": 10, "weight": 12.5, "comment": "", "category": "Lower Body"}, {"exercise": "Goblet Squat", "set": 2, "reps": 10, "weight": 12.5, "comment": "", "category": "Lower Body"}, {"exercise": "Goblet Squat", "set": 3, "reps": 10, "weight": 12.5, "comment": "", "category": "Lower Body"}, {"exercise": "Lat Pull - Neutral Grip", "set": 1, "reps": 12, "weight": 22.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Neutral Grip", "set": 1, "reps": 12, "weight": 22.5, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Dead Bug", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Core"}, {"exercise": "Dead Bug", "set": 2, "reps": 10, "weight": 0.0, "comment": "", "category": "Core"}]}, {"date": "2025-12-31", "display_date": "31/12/2025", "warmup": [{"exercise": "Cat & Cow", "set": 1, "reps": 6, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 6, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Spiderman lunge w/ thoracic", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Lunge Twists", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Cable Pull Throughs", "set": 1, "reps": 12, "weight": 10.0, "comment": "RDL", "category": "Lower Body"}, {"exercise": "Cable Pull Throughs", "set": 2, "reps": 12, "weight": 10.0, "comment": "RDL", "category": "Lower Body"}, {"exercise": "Cable Pull Throughs", "set": 3, "reps": 12, "weight": 10.0, "comment": "RDL", "category": "Lower Body"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "Bench", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 2, "reps": 8, "weight": 0.0, "comment": "Bench", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 3, "reps": 8, "weight": 0.0, "comment": "Bench", "category": "Upper Body - Push"}, {"exercise": "Curtsy Squat", "set": 1, "reps": 10, "weight": 10.0, "comment": "2x5kg", "category": "Lower Body"}, {"exercise": "Curtsy Squat", "set": 2, "reps": 10, "weight": 10.0, "comment": "2x5kg", "category": "Lower Body"}, {"exercise": "Curtsy Squat", "set": 3, "reps": 10, "weight": 10.0, "comment": "2x5kg", "category": "Lower Body"}, {"exercise": "Bicep Curl - Dumbbell", "set": 1, "reps": 10, "weight": 10.0, "comment": "2x5kg", "category": "Upper Body - Pull"}, {"exercise": "Bicep Curl - Dumbbell", "set": 2, "reps": 10, "weight": 10.0, "comment": "2x5kg", "category": "Upper Body - Pull"}, {"exercise": "Bicep Curl - Dumbbell", "set": 3, "reps": 10, "weight": 10.0, "comment": "2x5kg", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Supinated", "set": 1, "reps": 20, "weight": 10.0, "comment": "SA kneeling 10/10", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Session Tag", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "ve tecaten Throw", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2026-01-07", "display_date": "07/01/2026", "warmup": [], "main": [], "finisher": []}, {"date": "2026-01-09", "display_date": "09/01/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "\u2018Wall push ups", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "Jside", "category": "Other"}], "main": [{"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 8, "weight": 30.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 10, "weight": 30.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 10, "weight": 30.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 10, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 12, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 12, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 80.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 80.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 80.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Kettlebell Swing", "set": 1, "reps": 30, "weight": 10.0, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Kettlebell Swing", "set": 2, "reps": 30, "weight": 10.0, "comment": "", "category": "Full Body / Carry"}]}, {"date": "2026-01-13", "display_date": "13/01/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Machine Chest Press", "set": 1, "reps": 10, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 2, "reps": 10, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 3, "reps": 8, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Bird Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "Each Side", "category": "Core"}, {"exercise": "Bird Dog", "set": 2, "reps": 10, "weight": 1.25, "comment": "", "category": "Core"}, {"exercise": "Bird Dog", "set": 3, "reps": 10, "weight": 1.25, "comment": "", "category": "Core"}, {"exercise": "Farmer's Walk", "set": 1, "reps": 40, "weight": 15.0, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Farmer's Walk", "set": 2, "reps": 40, "weight": 17.5, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Farmer's Walk", "set": 3, "reps": 40, "weight": 17.5, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Lat Pull - Pronated", "set": 1, "reps": 12, "weight": 26.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 2, "reps": 10, "weight": 31.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 3, "reps": 10, "weight": 31.5, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "\u2018Wall Sit (wall squat)", "set": 1, "reps": 35, "weight": 5.0, "comment": "\u2018Wall balls", "category": "Other"}]}, {"date": "2026-01-15", "display_date": "15/01/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Machine Chest Press", "set": 1, "reps": 10, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 2, "reps": 10, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 3, "reps": 8, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Bird Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "Each Side", "category": "Core"}, {"exercise": "Bird Dog", "set": 2, "reps": 10, "weight": 1.25, "comment": "", "category": "Core"}, {"exercise": "Bird Dog", "set": 3, "reps": 10, "weight": 1.25, "comment": "", "category": "Core"}, {"exercise": "Farmer's Walk", "set": 1, "reps": 40, "weight": 15.0, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Farmer's Walk", "set": 2, "reps": 40, "weight": 17.5, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Farmer's Walk", "set": 3, "reps": 40, "weight": 17.5, "comment": "", "category": "Full Body / Carry"}, {"exercise": "Lat Pull - Pronated", "set": 1, "reps": 12, "weight": 26.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 2, "reps": 10, "weight": 31.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 3, "reps": 10, "weight": 31.5, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "\u2018Wall Sit (wall squat)", "set": 1, "reps": 35, "weight": 5.0, "comment": "\u2018Wall balls", "category": "Other"}]}, {"date": "2026-01-21", "display_date": "21/01/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Barbell/Dumbbell Clean", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell/Dumbbell Clean", "set": 2, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell/Dumbbell Clean", "set": 3, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell/Dumbbell Clean", "set": 4, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 82.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 2, "reps": 10, "weight": 82.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 3, "reps": 10, "weight": 82.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 12, "weight": 9.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 2, "reps": 12, "weight": 9.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 3, "reps": 12, "weight": 9.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hanging Knee Tucks", "set": 1, "reps": 1, "weight": 0.0, "comment": "Deadhang 30s", "category": "Core"}, {"exercise": "Hanging Knee Tucks", "set": 2, "reps": 1, "weight": 0.0, "comment": "Deadhang 30s", "category": "Core"}, {"exercise": "Hanging Knee Tucks", "set": 3, "reps": 1, "weight": 0.0, "comment": "Deadhang 30s", "category": "Core"}], "finisher": [{"exercise": "Alternate straight leg lifts", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Alternate straight leg lifts", "set": 2, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Alternate straight leg lifts", "set": 3, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2026-01-23", "display_date": "23/01/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 12, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 8, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 8, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 12, "weight": 7.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 8, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 8, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 12, "weight": 30.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 8, "weight": 35.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 8, "weight": 35.0, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Plank", "set": 1, "reps": 1, "weight": 0.0, "comment": "Amin32s", "category": "Other"}]}, {"date": "2026-01-30", "display_date": "30/01/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Barbell/Dumbbell Clean", "set": 1, "reps": 12, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell/Dumbbell Clean", "set": 1, "reps": 8, "weight": 25.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell/Dumbbell Clean", "set": 1, "reps": 10, "weight": 25.0, "comment": "", "category": "Lower Body"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 82.0, "comment": "72kg, Deadhang 30s", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 82.0, "comment": "72kg, Deadhang 35s", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 82.0, "comment": "68kg, Deadhang 35s", "category": "Upper Body - Pull"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 12, "weight": 30.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 12, "weight": 35.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 8, "weight": 40.0, "comment": "", "category": "Lower Body"}, {"exercise": "Banded Single Arm Row", "set": 1, "reps": 12, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Banded Single Arm Row", "set": 1, "reps": 10, "weight": 12.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Banded Single Arm Row", "set": 1, "reps": 8, "weight": 12.5, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Seated leg lifts", "set": 1, "reps": 60, "weight": 0.0, "comment": "1.5min, Laying toe tap", "category": "Other"}]}, {"date": "2026-02-02", "display_date": "02/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "\u2018Trap Bar Deadlift", "set": 1, "reps": 12, "weight": 25.0, "comment": "", "category": "Other"}, {"exercise": "\u2018Trap Bar Deadlift", "set": 2, "reps": 10, "weight": 30.0, "comment": "", "category": "Other"}, {"exercise": "\u2018Trap Bar Deadlift", "set": 3, "reps": 10, "weight": 30.0, "comment": "", "category": "Other"}, {"exercise": "Reverse Lunges", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 2, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Reverse Lunges", "set": 3, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 12, "weight": 18.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 2, "reps": 0, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 3, "reps": 0, "weight": 22.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 12, "weight": 27.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 2, "reps": 0, "weight": 32.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 3, "reps": 10, "weight": 32.5, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Rotational crunch w/ elbow ground", "set": 1, "reps": 45, "weight": 0.0, "comment": "Amin30s", "category": "Other"}]}, {"date": "2026-02-06", "display_date": "06/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 8, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 8, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 8, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 8, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 10, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 12, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 8, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Eccentric", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 12, "weight": 9.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 12, "weight": 9.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 12, "weight": 9.0, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Bicycle crunch", "set": 1, "reps": 50, "weight": 0.0, "comment": "30/20, Legs only", "category": "Other"}]}, {"date": "2026-02-11", "display_date": "11/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "Wall push up", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 20, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Barbell/Dumbbell Clean", "set": 1, "reps": 12, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell/Dumbbell Clean", "set": 2, "reps": 0, "weight": 25.0, "comment": "", "category": "Lower Body"}, {"exercise": "Barbell/Dumbbell Clean", "set": 3, "reps": 12, "weight": 20.0, "comment": "", "category": "Lower Body"}, {"exercise": "Band Assisted Pull Ups", "set": 1, "reps": 10, "weight": 82.0, "comment": "75kg 455", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 2, "reps": 10, "weight": 82.0, "comment": "68kg 455", "category": "Upper Body - Pull"}, {"exercise": "Band Assisted Pull Ups", "set": 3, "reps": 10, "weight": 82.0, "comment": "61kg 30s", "category": "Upper Body - Pull"}, {"exercise": "Romanian Deadlift", "set": 1, "reps": 12, "weight": 35.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 2, "reps": 0, "weight": 40.0, "comment": "", "category": "Lower Body"}, {"exercise": "Romanian Deadlift", "set": 3, "reps": 10, "weight": 37.5, "comment": "", "category": "Lower Body"}, {"exercise": "Leg Press", "set": 1, "reps": 12, "weight": 44.0, "comment": "", "category": "Lower Body"}, {"exercise": "Leg Press", "set": 2, "reps": 0, "weight": 51.0, "comment": "", "category": "Lower Body"}, {"exercise": "Leg Press", "set": 3, "reps": 10, "weight": 51.0, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Seated leg lifts", "set": 1, "reps": 50, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2026-02-13", "display_date": "13/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "\u2018Trap Bar Deadlift", "set": 1, "reps": 12, "weight": 25.0, "comment": "", "category": "Other"}, {"exercise": "\u2018Trap Bar Deadlift", "set": 2, "reps": 12, "weight": 30.0, "comment": "", "category": "Other"}, {"exercise": "\u2018Trap Bar Deadlift", "set": 3, "reps": 12, "weight": 35.0, "comment": "", "category": "Other"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 12, "weight": 9.0, "comment": "Machine", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 2, "reps": 12, "weight": 13.5, "comment": "Machine", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 3, "reps": 10, "weight": 18.0, "comment": "Machine", "category": "Lower Body"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 12, "weight": 27.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 2, "reps": 8, "weight": 32.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 3, "reps": 10, "weight": 32.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 12, "weight": 27.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 2, "reps": 10, "weight": 32.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 3, "reps": 10, "weight": 32.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Seated leg lifts", "set": 1, "reps": 0, "weight": 0.0, "comment": "Alternating AMRAP", "category": "Other"}, {"exercise": "Seated leg lifts", "set": 2, "reps": 0, "weight": 0.0, "comment": "Alternating AMRAP", "category": "Other"}]}, {"date": "2026-02-16", "display_date": "16/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 12, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 0, "weight": 10.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 10, "weight": 10.0, "comment": "", "category": "Lower Body"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 10, "weight": 12.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 10, "weight": 12.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 12, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 12, "weight": 0.0, "comment": "Mak jine. Level 7", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 12, "weight": 0.0, "comment": "Smith Machine. Level 6", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 10, "weight": 0.0, "comment": "Smith Machine. Level 6", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 0, "weight": 0.0, "comment": "Mac ie. Level 5", "category": "Upper Body - Push"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 10, "weight": 18.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 10, "weight": 18.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 10, "weight": 18.0, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Cable crunch", "set": 1, "reps": 30, "weight": 15.0, "comment": "", "category": "Other"}, {"exercise": "Cable crunch", "set": 2, "reps": 30, "weight": 15.0, "comment": "", "category": "Other"}]}, {"date": "2026-02-23", "display_date": "23/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "\u2018Trap Bar Deadlift", "set": 1, "reps": 12, "weight": 25.0, "comment": "", "category": "Other"}, {"exercise": "\u2018Trap Bar Deadlift", "set": 2, "reps": 12, "weight": 35.0, "comment": "", "category": "Other"}, {"exercise": "\u2018Trap Bar Deadlift", "set": 3, "reps": 10, "weight": 37.5, "comment": "", "category": "Other"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 12, "weight": 18.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 2, "reps": 12, "weight": 18.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 3, "reps": 12, "weight": 18.0, "comment": "", "category": "Lower Body"}, {"exercise": "Machine Chest Press", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 2, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Machine Chest Press", "set": 3, "reps": 10, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 12, "weight": 27.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 2, "reps": 12, "weight": 32.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 3, "reps": 12, "weight": 32.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Wall Sit (wall squat)", "set": 1, "reps": 12, "weight": 0.0, "comment": "wall ball", "category": "Other"}, {"exercise": "Wall Sit (wall squat)", "set": 2, "reps": 12, "weight": 0.0, "comment": "wall ball", "category": "Other"}, {"exercise": "Wall Sit (wall squat)", "set": 3, "reps": 12, "weight": 0.0, "comment": "wall ball", "category": "Other"}]}, {"date": "2026-02-25", "display_date": "25/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 12, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 10, "weight": 10.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 10, "weight": 10.0, "comment": "", "category": "Lower Body"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 12, "weight": 12.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 12, "weight": 12.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 12, "weight": 10.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 12, "weight": 0.0, "comment": "8/4, Smith Machine Iv 5", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 12, "weight": 0.0, "comment": "9/3", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 10, "weight": 0.0, "comment": "10/2", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 0, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 0, "weight": 22.5, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 0, "weight": 22.5, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 0, "weight": 22.5, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Vertical Jumps", "set": 1, "reps": 30, "weight": 5.0, "comment": "ES", "category": "Other"}, {"exercise": "Vertical Jumps", "set": 2, "reps": 30, "weight": 7.5, "comment": "ES", "category": "Other"}, {"exercise": "Vertical Jumps", "set": 3, "reps": 30, "weight": 7.5, "comment": "ES", "category": "Other"}]}, {"date": "2026-02-27", "display_date": "27/02/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Deadlift (Barbell)", "set": 1, "reps": 8, "weight": 25.0, "comment": "", "category": "Lower Body"}, {"exercise": "Deadlift (Barbell)", "set": 1, "reps": 8, "weight": 35.0, "comment": "", "category": "Lower Body"}, {"exercise": "Deadlift (Barbell)", "set": 1, "reps": 8, "weight": 37.5, "comment": "", "category": "Lower Body"}, {"exercise": "Glute Bridge", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Glute Bridge", "set": 1, "reps": 12, "weight": 5.0, "comment": "", "category": "Lower Body"}, {"exercise": "Glute Bridge", "set": 1, "reps": 12, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Overhead Triceps Extension", "set": 1, "reps": 8, "weight": 10.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Overhead Triceps Extension", "set": 1, "reps": 12, "weight": 7.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Overhead Triceps Extension", "set": 1, "reps": 12, "weight": 7.5, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 12, "weight": 22.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 12, "weight": 32.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 12, "weight": 32.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Seated Row - Eccentric", "set": 1, "reps": 12, "weight": 27.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Wall Sit (wall squat)", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Wall Sit (wall squat)", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Wall Sit (wall squat)", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2026-03-02", "display_date": "02/03/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Goblet Squat", "set": 1, "reps": 12, "weight": 15.0, "comment": "2 Plates stacked on stool", "category": "Lower Body"}, {"exercise": "Goblet Squat", "set": 2, "reps": 10, "weight": 17.5, "comment": "LB pain", "category": "Lower Body"}, {"exercise": "Goblet Squat", "set": 3, "reps": 12, "weight": 15.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 1, "reps": 12, "weight": 18.0, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 2, "reps": 0, "weight": 22.5, "comment": "", "category": "Lower Body"}, {"exercise": "Hamstring Curls", "set": 3, "reps": 10, "weight": 22.5, "comment": "", "category": "Lower Body"}, {"exercise": "Bench Press - Barbell", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Upper Body - Push"}, {"exercise": "Bench Press - Barbell", "set": 2, "reps": 12, "weight": 10.0, "comment": "ba", "category": "Upper Body - Push"}, {"exercise": "Bench Press - Barbell", "set": 3, "reps": 12, "weight": 7.5, "comment": "ba", "category": "Upper Body - Push"}, {"exercise": "Lat Pull - Pronated", "set": 1, "reps": 12, "weight": 31.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 2, "reps": 12, "weight": 36.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Lat Pull - Pronated", "set": 3, "reps": 10, "weight": 36.0, "comment": "", "category": "Upper Body - Pull"}], "finisher": [{"exercise": "Wall Sit (wall squat)", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Wall Sit (wall squat)", "set": 2, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Wall Sit (wall squat)", "set": 3, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}]}, {"date": "2026-03-04", "display_date": "04/03/2026", "warmup": [{"exercise": "Shoulder Mobility Work", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Squat", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Lower Body"}, {"exercise": "Push-up to Down Dog", "set": 1, "reps": 12, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Calf Raises", "set": 1, "reps": 15, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Bird Dog Kickback", "set": 1, "reps": 10, "weight": 0.0, "comment": "", "category": "Other"}], "main": [{"exercise": "Squat to Shoulder Press (Thrusters)", "set": 1, "reps": 10, "weight": 10.0, "comment": "", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 2, "reps": 10, "weight": 10.0, "comment": "6/4", "category": "Lower Body"}, {"exercise": "Squat to Shoulder Press (Thrusters)", "set": 3, "reps": 0, "weight": 10.0, "comment": "", "category": "Lower Body"}, {"exercise": "Bent Over Row - Dumbbell", "set": 1, "reps": 12, "weight": 12.5, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 2, "reps": 0, "weight": 15.0, "comment": "ES", "category": "Upper Body - Pull"}, {"exercise": "Bent Over Row - Dumbbell", "set": 3, "reps": 0, "weight": 15.0, "comment": "", "category": "Upper Body - Pull"}, {"exercise": "Push Ups - Wall/Bench", "set": 1, "reps": 12, "weight": 0.0, "comment": "\u2018Smith Machine Level 7 (Facing the window)", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 2, "reps": 12, "weight": 0.0, "comment": "level 6", "category": "Upper Body - Push"}, {"exercise": "Push Ups - Wall/Bench", "set": 3, "reps": 10, "weight": 0.0, "comment": "level 5 ( (3/2/2/1)", "category": "Upper Body - Push"}, {"exercise": "Glute Bridge", "set": 1, "reps": 12, "weight": 7.5, "comment": "", "category": "Lower Body"}, {"exercise": "Glute Bridge", "set": 2, "reps": 12, "weight": 10.0, "comment": "", "category": "Lower Body"}, {"exercise": "Glute Bridge", "set": 3, "reps": 12, "weight": 10.0, "comment": "", "category": "Lower Body"}], "finisher": [{"exercise": "Dead bug", "set": 1, "reps": 20, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Dead bug", "set": 2, "reps": 20, "weight": 0.0, "comment": "", "category": "Other"}, {"exercise": "Dead bug", "set": 3, "reps": 20, "weight": 0.0, "comment": "", "category": "Other"}]}], "exercises": {"Resistance Band Squats": {"category": "Lower Body", "history": [{"date": "2025-11-20", "set": 1, "reps": 8, "weight": 15.0, "comment": ""}, {"date": "2025-11-20", "set": 1, "reps": 10, "weight": 15.0, "comment": ""}, {"date": "2025-11-20", "set": 1, "reps": 10, "weight": 15.0, "comment": ""}]}, "Push Ups - Wall/Bench": {"category": "Upper Body - Push", "history": [{"date": "2025-11-20", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-20", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-20", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 12, "weight": 0.0, "comment": "Mak jine. Level 7"}, {"date": "2026-02-16", "set": 1, "reps": 12, "weight": 0.0, "comment": "Smith Machine. Level 6"}, {"date": "2026-02-16", "set": 1, "reps": 10, "weight": 0.0, "comment": "Smith Machine. Level 6"}, {"date": "2026-02-16", "set": 1, "reps": 0, "weight": 0.0, "comment": "Mac ie. Level 5"}, {"date": "2026-02-25", "set": 1, "reps": 12, "weight": 0.0, "comment": "8/4, Smith Machine Iv 5"}, {"date": "2026-02-25", "set": 1, "reps": 12, "weight": 0.0, "comment": "9/3"}, {"date": "2026-02-25", "set": 1, "reps": 10, "weight": 0.0, "comment": "10/2"}, {"date": "2026-02-25", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2026-03-04", "set": 1, "reps": 12, "weight": 0.0, "comment": "\u2018Smith Machine Level 7 (Facing the window)"}, {"date": "2026-03-04", "set": 2, "reps": 12, "weight": 0.0, "comment": "level 6"}, {"date": "2026-03-04", "set": 3, "reps": 10, "weight": 0.0, "comment": "level 5 ( (3/2/2/1)"}]}, "Bicep Curl - Resistance Band": {"category": "Upper Body - Pull", "history": [{"date": "2025-11-20", "set": 1, "reps": 0, "weight": 15.0, "comment": ""}, {"date": "2025-11-20", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-20", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}]}, "Frontal Raises": {"category": "Upper Body - Push", "history": [{"date": "2025-11-20", "set": 1, "reps": 12, "weight": 3.0, "comment": ""}, {"date": "2025-11-20", "set": 2, "reps": 12, "weight": 3.0, "comment": ""}, {"date": "2025-11-20", "set": 3, "reps": 10, "weight": 5.0, "comment": ""}]}, "High Plank": {"category": "Other", "history": [{"date": "2025-11-20", "set": 1, "reps": 1, "weight": 0.0, "comment": ""}]}, "Wall Sit (wall squat)": {"category": "Other", "history": [{"date": "2025-11-20", "set": 1, "reps": 1, "weight": 0.0, "comment": ""}, {"date": "2026-02-23", "set": 1, "reps": 12, "weight": 0.0, "comment": "wall ball"}, {"date": "2026-02-23", "set": 2, "reps": 12, "weight": 0.0, "comment": "wall ball"}, {"date": "2026-02-23", "set": 3, "reps": 12, "weight": 0.0, "comment": "wall ball"}, {"date": "2026-02-27", "set": 1, "reps": 15, "weight": 0.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 15, "weight": 0.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-03-02", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-03-02", "set": 2, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-03-02", "set": 3, "reps": 12, "weight": 0.0, "comment": ""}]}, "Squat": {"category": "Lower Body", "history": [{"date": "2025-11-24", "set": 1, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2025-11-24", "set": 2, "reps": 10, "weight": 7.5, "comment": ""}, {"date": "2025-11-24", "set": 3, "reps": 8, "weight": 10.0, "comment": "Back pain"}, {"date": "2025-12-05", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 5.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 5.0, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 10, "weight": 2.5, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 12, "weight": 2.5, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 0, "weight": 5.0, "comment": ""}]}, "Machine Chest Press": {"category": "Upper Body - Push", "history": [{"date": "2025-11-24", "set": 1, "reps": 10, "weight": 13.5, "comment": ""}, {"date": "2025-11-24", "set": 2, "reps": 10, "weight": 13.5, "comment": ""}, {"date": "2025-11-24", "set": 3, "reps": 10, "weight": 13.5, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 12, "weight": 13.5, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 12, "weight": 18.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 12, "weight": 22.5, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 12, "weight": 22.5, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 0, "weight": 26.5, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 0, "weight": 26.5, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 10, "weight": 22.5, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 8, "weight": 22.5, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 8, "weight": 22.5, "comment": ""}, {"date": "2026-01-13", "set": 1, "reps": 10, "weight": 22.5, "comment": ""}, {"date": "2026-01-13", "set": 2, "reps": 10, "weight": 22.5, "comment": ""}, {"date": "2026-01-13", "set": 3, "reps": 8, "weight": 22.5, "comment": ""}, {"date": "2026-01-15", "set": 1, "reps": 10, "weight": 22.5, "comment": ""}, {"date": "2026-01-15", "set": 2, "reps": 10, "weight": 22.5, "comment": ""}, {"date": "2026-01-15", "set": 3, "reps": 8, "weight": 22.5, "comment": ""}, {"date": "2026-02-02", "set": 1, "reps": 12, "weight": 18.0, "comment": ""}, {"date": "2026-02-02", "set": 2, "reps": 0, "weight": 22.5, "comment": ""}, {"date": "2026-02-02", "set": 3, "reps": 0, "weight": 22.5, "comment": ""}, {"date": "2026-02-13", "set": 1, "reps": 12, "weight": 27.0, "comment": ""}, {"date": "2026-02-13", "set": 2, "reps": 8, "weight": 32.0, "comment": ""}, {"date": "2026-02-13", "set": 3, "reps": 10, "weight": 32.0, "comment": ""}, {"date": "2026-02-23", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-02-23", "set": 2, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2026-02-23", "set": 3, "reps": 10, "weight": 0.0, "comment": ""}]}, "Reverse Lunges": {"category": "Lower Body", "history": [{"date": "2025-11-24", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-24", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-24", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 6, "weight": 0.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 10, "weight": 0.0, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-02-02", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-02-02", "set": 2, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-02-02", "set": 3, "reps": 12, "weight": 0.0, "comment": ""}]}, "Seated Row - Eccentric": {"category": "Upper Body - Pull", "history": [{"date": "2025-11-24", "set": 1, "reps": 0, "weight": 18.0, "comment": ""}, {"date": "2025-11-24", "set": 1, "reps": 10, "weight": 18.0, "comment": ""}, {"date": "2025-11-24", "set": 1, "reps": 10, "weight": 18.0, "comment": ""}, {"date": "2026-02-02", "set": 1, "reps": 12, "weight": 27.0, "comment": ""}, {"date": "2026-02-02", "set": 2, "reps": 0, "weight": 32.5, "comment": ""}, {"date": "2026-02-02", "set": 3, "reps": 10, "weight": 32.5, "comment": ""}, {"date": "2026-02-13", "set": 1, "reps": 12, "weight": 27.0, "comment": ""}, {"date": "2026-02-13", "set": 2, "reps": 10, "weight": 32.0, "comment": ""}, {"date": "2026-02-13", "set": 3, "reps": 10, "weight": 32.0, "comment": ""}, {"date": "2026-02-23", "set": 1, "reps": 12, "weight": 27.0, "comment": ""}, {"date": "2026-02-23", "set": 2, "reps": 12, "weight": 32.0, "comment": ""}, {"date": "2026-02-23", "set": 3, "reps": 12, "weight": 32.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 22.5, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 32.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 32.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 27.0, "comment": ""}]}, "Bird Dog": {"category": "Core", "history": [{"date": "2025-11-24", "set": 1, "reps": 30, "weight": 0.0, "comment": ""}, {"date": "2026-01-13", "set": 1, "reps": 12, "weight": 0.0, "comment": "Each Side"}, {"date": "2026-01-13", "set": 2, "reps": 10, "weight": 1.25, "comment": ""}, {"date": "2026-01-13", "set": 3, "reps": 10, "weight": 1.25, "comment": ""}, {"date": "2026-01-15", "set": 1, "reps": 12, "weight": 0.0, "comment": "Each Side"}, {"date": "2026-01-15", "set": 2, "reps": 10, "weight": 1.25, "comment": ""}, {"date": "2026-01-15", "set": 3, "reps": 10, "weight": 1.25, "comment": ""}]}, "Shoulder Press - Machine": {"category": "Upper Body - Push", "history": [{"date": "2025-11-26", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-26", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-26", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}]}, "Lat Pull - Pronated": {"category": "Upper Body - Pull", "history": [{"date": "2025-11-26", "set": 1, "reps": 10, "weight": 16.5, "comment": ""}, {"date": "2025-11-26", "set": 2, "reps": 12, "weight": 16.5, "comment": ""}, {"date": "2025-11-26", "set": 3, "reps": 10, "weight": 21.0, "comment": ""}, {"date": "2026-01-13", "set": 1, "reps": 12, "weight": 26.5, "comment": ""}, {"date": "2026-01-13", "set": 2, "reps": 10, "weight": 31.5, "comment": ""}, {"date": "2026-01-13", "set": 3, "reps": 10, "weight": 31.5, "comment": ""}, {"date": "2026-01-15", "set": 1, "reps": 12, "weight": 26.5, "comment": ""}, {"date": "2026-01-15", "set": 2, "reps": 10, "weight": 31.5, "comment": ""}, {"date": "2026-01-15", "set": 3, "reps": 10, "weight": 31.5, "comment": ""}, {"date": "2026-03-02", "set": 1, "reps": 12, "weight": 31.5, "comment": ""}, {"date": "2026-03-02", "set": 2, "reps": 12, "weight": 36.0, "comment": ""}, {"date": "2026-03-02", "set": 3, "reps": 10, "weight": 36.0, "comment": ""}]}, "Leg Press": {"category": "Lower Body", "history": [{"date": "2025-11-26", "set": 1, "reps": 10, "weight": 44.0, "comment": ""}, {"date": "2025-11-26", "set": 2, "reps": 12, "weight": 44.0, "comment": ""}, {"date": "2025-11-26", "set": 3, "reps": 12, "weight": 44.0, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 12, "weight": 44.0, "comment": ""}, {"date": "2025-12-18", "set": 2, "reps": 14, "weight": 44.0, "comment": ""}, {"date": "2025-12-18", "set": 3, "reps": 14, "weight": 44.0, "comment": ""}, {"date": "2026-02-11", "set": 1, "reps": 12, "weight": 44.0, "comment": ""}, {"date": "2026-02-11", "set": 2, "reps": 0, "weight": 51.0, "comment": ""}, {"date": "2026-02-11", "set": 3, "reps": 10, "weight": 51.0, "comment": ""}]}, "Romanian Deadlift": {"category": "Lower Body", "history": [{"date": "2025-11-26", "set": 1, "reps": 10, "weight": 20.0, "comment": ""}, {"date": "2025-11-26", "set": 2, "reps": 10, "weight": 20.0, "comment": ""}, {"date": "2025-11-26", "set": 3, "reps": 10, "weight": 20.0, "comment": ""}, {"date": "2025-11-28", "set": 1, "reps": 0, "weight": 20.0, "comment": ""}, {"date": "2025-11-28", "set": 1, "reps": 410, "weight": 0.0, "comment": ""}, {"date": "2025-11-28", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 10, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 10, "weight": 20.0, "comment": ""}, {"date": "2025-12-18", "set": 2, "reps": 10, "weight": 20.0, "comment": ""}, {"date": "2025-12-18", "set": 3, "reps": 10, "weight": 20.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 8, "weight": 30.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 10, "weight": 30.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 10, "weight": 30.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 12, "weight": 30.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 35.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 35.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 12, "weight": 30.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 12, "weight": 35.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 8, "weight": 40.0, "comment": ""}, {"date": "2026-02-11", "set": 1, "reps": 12, "weight": 35.0, "comment": ""}, {"date": "2026-02-11", "set": 2, "reps": 0, "weight": 40.0, "comment": ""}, {"date": "2026-02-11", "set": 3, "reps": 10, "weight": 37.5, "comment": ""}]}, "Burpees": {"category": "Other", "history": [{"date": "2025-11-26", "set": 1, "reps": 20, "weight": 0.0, "comment": ""}]}, "Hip Thrusters": {"category": "Lower Body", "history": [{"date": "2025-11-28", "set": 1, "reps": 8, "weight": 5.0, "comment": ""}, {"date": "2025-11-28", "set": 2, "reps": 10, "weight": 5.0, "comment": ""}, {"date": "2025-11-28", "set": 3, "reps": 8, "weight": 7.5, "comment": ""}]}, "Bent Over Row - Dumbbell": {"category": "Upper Body - Pull", "history": [{"date": "2025-11-28", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-11-28", "set": 1, "reps": 0, "weight": 10.0, "comment": ""}, {"date": "2025-11-28", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 12, "weight": 7.5, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 10.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 10.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 8, "weight": 10.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 10, "weight": 10.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 12, "weight": 10.0, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 10, "weight": 12.5, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 10, "weight": 12.5, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 12, "weight": 10.0, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 12, "weight": 12.5, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 12, "weight": 12.5, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 12, "weight": 10.0, "comment": ""}, {"date": "2026-03-04", "set": 1, "reps": 12, "weight": 12.5, "comment": ""}, {"date": "2026-03-04", "set": 2, "reps": 0, "weight": 15.0, "comment": "ES"}, {"date": "2026-03-04", "set": 3, "reps": 0, "weight": 15.0, "comment": ""}]}, "Chest Press - Dumbbell": {"category": "Upper Body - Push", "history": [{"date": "2025-11-28", "set": 1, "reps": 10, "weight": 5.0, "comment": ""}, {"date": "2025-11-28", "set": 2, "reps": 12, "weight": 5.0, "comment": ""}, {"date": "2025-11-28", "set": 3, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2025-12-08", "set": 1, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2025-12-08", "set": 2, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2025-12-08", "set": 3, "reps": 8, "weight": 7.5, "comment": ""}]}, "Medicine Ball Throw": {"category": "Other", "history": [{"date": "2025-11-28", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}]}, "with Rotation": {"category": "Other", "history": [{"date": "2025-11-28", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}]}, "Barbell Back Squat": {"category": "Lower Body", "history": [{"date": "2025-12-03", "set": 1, "reps": 8, "weight": 15.0, "comment": "-"}, {"date": "2025-12-03", "set": 2, "reps": 10, "weight": 15.0, "comment": ""}, {"date": "2025-12-03", "set": 3, "reps": 10, "weight": 15.0, "comment": ""}]}, "Chest Flies - Cable": {"category": "Upper Body - Push", "history": [{"date": "2025-12-03", "set": 1, "reps": 8, "weight": 15.0, "comment": ""}, {"date": "2025-12-03", "set": 2, "reps": 10, "weight": 22.0, "comment": ""}, {"date": "2025-12-03", "set": 3, "reps": 10, "weight": 26.25, "comment": ""}]}, "Kettlebell Swing": {"category": "Full Body / Carry", "history": [{"date": "2025-12-03", "set": 1, "reps": 20, "weight": 6.0, "comment": ""}, {"date": "2025-12-03", "set": 1, "reps": 30, "weight": 6.0, "comment": ""}, {"date": "2025-12-03", "set": 1, "reps": 415, "weight": 12.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 30, "weight": 10.0, "comment": ""}, {"date": "2026-01-09", "set": 2, "reps": 30, "weight": 10.0, "comment": ""}]}, "Band Assisted Pull Ups": {"category": "Upper Body - Pull", "history": [{"date": "2025-12-03", "set": 1, "reps": 0, "weight": 75.0, "comment": ""}, {"date": "2025-12-03", "set": 1, "reps": 0, "weight": 82.0, "comment": ""}, {"date": "2025-12-03", "set": 1, "reps": 0, "weight": 82.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 10, "weight": 80.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 10, "weight": 80.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 10, "weight": 80.0, "comment": ""}, {"date": "2026-01-21", "set": 1, "reps": 10, "weight": 82.0, "comment": ""}, {"date": "2026-01-21", "set": 2, "reps": 10, "weight": 82.0, "comment": ""}, {"date": "2026-01-21", "set": 3, "reps": 10, "weight": 82.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 10, "weight": 82.0, "comment": "72kg, Deadhang 30s"}, {"date": "2026-01-30", "set": 1, "reps": 10, "weight": 82.0, "comment": "72kg, Deadhang 35s"}, {"date": "2026-01-30", "set": 1, "reps": 10, "weight": 82.0, "comment": "68kg, Deadhang 35s"}, {"date": "2026-02-11", "set": 1, "reps": 10, "weight": 82.0, "comment": "75kg 455"}, {"date": "2026-02-11", "set": 2, "reps": 10, "weight": 82.0, "comment": "68kg 455"}, {"date": "2026-02-11", "set": 3, "reps": 10, "weight": 82.0, "comment": "61kg 30s"}]}, "Farmer's Walk": {"category": "Full Body / Carry", "history": [{"date": "2025-12-03", "set": 1, "reps": 40, "weight": 12.5, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 40, "weight": 15.0, "comment": ""}, {"date": "2026-01-13", "set": 1, "reps": 40, "weight": 15.0, "comment": ""}, {"date": "2026-01-13", "set": 2, "reps": 40, "weight": 17.5, "comment": ""}, {"date": "2026-01-13", "set": 3, "reps": 40, "weight": 17.5, "comment": ""}, {"date": "2026-01-15", "set": 1, "reps": 40, "weight": 15.0, "comment": ""}, {"date": "2026-01-15", "set": 2, "reps": 40, "weight": 17.5, "comment": ""}, {"date": "2026-01-15", "set": 3, "reps": 40, "weight": 17.5, "comment": ""}]}, "Seated Cable Row - Pronated": {"category": "Upper Body - Pull", "history": [{"date": "2025-12-05", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-05", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}, {"date": "2025-12-12", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}]}, "Elbow Plank": {"category": "Other", "history": [{"date": "2025-12-05", "set": 1, "reps": 20, "weight": 0.0, "comment": ""}]}, "Sit Ups": {"category": "Other", "history": [{"date": "2025-12-08", "set": 1, "reps": 20, "weight": 0.0, "comment": ""}]}, "Goblet Squat": {"category": "Lower Body", "history": [{"date": "2025-12-18", "set": 1, "reps": 10, "weight": 12.5, "comment": ""}, {"date": "2025-12-18", "set": 2, "reps": 10, "weight": 12.5, "comment": ""}, {"date": "2025-12-18", "set": 3, "reps": 10, "weight": 12.5, "comment": ""}, {"date": "2026-03-02", "set": 1, "reps": 12, "weight": 15.0, "comment": "2 Plates stacked on stool"}, {"date": "2026-03-02", "set": 2, "reps": 10, "weight": 17.5, "comment": "LB pain"}, {"date": "2026-03-02", "set": 3, "reps": 12, "weight": 15.0, "comment": ""}]}, "Lat Pull - Neutral Grip": {"category": "Upper Body - Pull", "history": [{"date": "2025-12-18", "set": 1, "reps": 12, "weight": 22.5, "comment": ""}, {"date": "2025-12-18", "set": 1, "reps": 12, "weight": 22.5, "comment": ""}]}, "Dead Bug": {"category": "Core", "history": [{"date": "2025-12-18", "set": 1, "reps": 10, "weight": 0.0, "comment": ""}, {"date": "2025-12-18", "set": 2, "reps": 10, "weight": 0.0, "comment": ""}]}, "Cable Pull Throughs": {"category": "Lower Body", "history": [{"date": "2025-12-31", "set": 1, "reps": 12, "weight": 10.0, "comment": "RDL"}, {"date": "2025-12-31", "set": 2, "reps": 12, "weight": 10.0, "comment": "RDL"}, {"date": "2025-12-31", "set": 3, "reps": 12, "weight": 10.0, "comment": "RDL"}]}, "Push Ups - Eccentric": {"category": "Upper Body - Push", "history": [{"date": "2025-12-31", "set": 1, "reps": 8, "weight": 0.0, "comment": "Bench"}, {"date": "2025-12-31", "set": 2, "reps": 8, "weight": 0.0, "comment": "Bench"}, {"date": "2025-12-31", "set": 3, "reps": 8, "weight": 0.0, "comment": "Bench"}, {"date": "2026-01-09", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 8, "weight": 0.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 10, "weight": 0.0, "comment": ""}]}, "Curtsy Squat": {"category": "Lower Body", "history": [{"date": "2025-12-31", "set": 1, "reps": 10, "weight": 10.0, "comment": "2x5kg"}, {"date": "2025-12-31", "set": 2, "reps": 10, "weight": 10.0, "comment": "2x5kg"}, {"date": "2025-12-31", "set": 3, "reps": 10, "weight": 10.0, "comment": "2x5kg"}]}, "Bicep Curl - Dumbbell": {"category": "Upper Body - Pull", "history": [{"date": "2025-12-31", "set": 1, "reps": 10, "weight": 10.0, "comment": "2x5kg"}, {"date": "2025-12-31", "set": 2, "reps": 10, "weight": 10.0, "comment": "2x5kg"}, {"date": "2025-12-31", "set": 3, "reps": 10, "weight": 10.0, "comment": "2x5kg"}]}, "Lat Pull - Supinated": {"category": "Upper Body - Pull", "history": [{"date": "2025-12-31", "set": 1, "reps": 20, "weight": 10.0, "comment": "SA kneeling 10/10"}]}, "Session Tag": {"category": "Other", "history": [{"date": "2025-12-31", "set": 1, "reps": 0, "weight": 0.0, "comment": ""}]}, "ve tecaten Throw": {"category": "Other", "history": [{"date": "2025-12-31", "set": 1, "reps": 10, "weight": 0.0, "comment": ""}]}, "Squat to Shoulder Press (Thrusters)": {"category": "Lower Body", "history": [{"date": "2026-01-09", "set": 1, "reps": 10, "weight": 5.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 12, "weight": 5.0, "comment": ""}, {"date": "2026-01-09", "set": 1, "reps": 12, "weight": 5.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 12, "weight": 5.0, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2026-01-23", "set": 1, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 8, "weight": 7.5, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 12, "weight": 7.5, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 0, "weight": 10.0, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 10, "weight": 10.0, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 12, "weight": 7.5, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 10, "weight": 10.0, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 10, "weight": 10.0, "comment": ""}, {"date": "2026-03-04", "set": 1, "reps": 10, "weight": 10.0, "comment": ""}, {"date": "2026-03-04", "set": 2, "reps": 10, "weight": 10.0, "comment": "6/4"}, {"date": "2026-03-04", "set": 3, "reps": 0, "weight": 10.0, "comment": ""}]}, "\u2018Wall Sit (wall squat)": {"category": "Other", "history": [{"date": "2026-01-13", "set": 1, "reps": 35, "weight": 5.0, "comment": "\u2018Wall balls"}, {"date": "2026-01-15", "set": 1, "reps": 35, "weight": 5.0, "comment": "\u2018Wall balls"}]}, "Barbell/Dumbbell Clean": {"category": "Lower Body", "history": [{"date": "2026-01-21", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-01-21", "set": 2, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-01-21", "set": 3, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-01-21", "set": 4, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 12, "weight": 20.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 8, "weight": 25.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 10, "weight": 25.0, "comment": ""}, {"date": "2026-02-11", "set": 1, "reps": 12, "weight": 20.0, "comment": ""}, {"date": "2026-02-11", "set": 2, "reps": 0, "weight": 25.0, "comment": ""}, {"date": "2026-02-11", "set": 3, "reps": 12, "weight": 20.0, "comment": ""}]}, "Hamstring Curls": {"category": "Lower Body", "history": [{"date": "2026-01-21", "set": 1, "reps": 12, "weight": 9.0, "comment": ""}, {"date": "2026-01-21", "set": 2, "reps": 12, "weight": 9.0, "comment": ""}, {"date": "2026-01-21", "set": 3, "reps": 12, "weight": 9.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 12, "weight": 9.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 12, "weight": 9.0, "comment": ""}, {"date": "2026-02-06", "set": 1, "reps": 12, "weight": 9.0, "comment": ""}, {"date": "2026-02-13", "set": 1, "reps": 12, "weight": 9.0, "comment": "Machine"}, {"date": "2026-02-13", "set": 2, "reps": 12, "weight": 13.5, "comment": "Machine"}, {"date": "2026-02-13", "set": 3, "reps": 10, "weight": 18.0, "comment": "Machine"}, {"date": "2026-02-16", "set": 1, "reps": 10, "weight": 18.0, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 10, "weight": 18.0, "comment": ""}, {"date": "2026-02-16", "set": 1, "reps": 10, "weight": 18.0, "comment": ""}, {"date": "2026-02-23", "set": 1, "reps": 12, "weight": 18.0, "comment": ""}, {"date": "2026-02-23", "set": 2, "reps": 12, "weight": 18.0, "comment": ""}, {"date": "2026-02-23", "set": 3, "reps": 12, "weight": 18.0, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 0, "weight": 22.5, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 0, "weight": 22.5, "comment": ""}, {"date": "2026-02-25", "set": 1, "reps": 0, "weight": 22.5, "comment": ""}, {"date": "2026-03-02", "set": 1, "reps": 12, "weight": 18.0, "comment": ""}, {"date": "2026-03-02", "set": 2, "reps": 0, "weight": 22.5, "comment": ""}, {"date": "2026-03-02", "set": 3, "reps": 10, "weight": 22.5, "comment": ""}]}, "Hanging Knee Tucks": {"category": "Core", "history": [{"date": "2026-01-21", "set": 1, "reps": 1, "weight": 0.0, "comment": "Deadhang 30s"}, {"date": "2026-01-21", "set": 2, "reps": 1, "weight": 0.0, "comment": "Deadhang 30s"}, {"date": "2026-01-21", "set": 3, "reps": 1, "weight": 0.0, "comment": "Deadhang 30s"}]}, "Alternate straight leg lifts": {"category": "Other", "history": [{"date": "2026-01-21", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-01-21", "set": 2, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-01-21", "set": 3, "reps": 12, "weight": 0.0, "comment": ""}]}, "Plank": {"category": "Other", "history": [{"date": "2026-01-23", "set": 1, "reps": 1, "weight": 0.0, "comment": "Amin32s"}]}, "Banded Single Arm Row": {"category": "Upper Body - Pull", "history": [{"date": "2026-01-30", "set": 1, "reps": 12, "weight": 10.0, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 10, "weight": 12.5, "comment": ""}, {"date": "2026-01-30", "set": 1, "reps": 8, "weight": 12.5, "comment": ""}]}, "Seated leg lifts": {"category": "Other", "history": [{"date": "2026-01-30", "set": 1, "reps": 60, "weight": 0.0, "comment": "1.5min, Laying toe tap"}, {"date": "2026-02-11", "set": 1, "reps": 50, "weight": 0.0, "comment": ""}, {"date": "2026-02-13", "set": 1, "reps": 0, "weight": 0.0, "comment": "Alternating AMRAP"}, {"date": "2026-02-13", "set": 2, "reps": 0, "weight": 0.0, "comment": "Alternating AMRAP"}]}, "\u2018Trap Bar Deadlift": {"category": "Other", "history": [{"date": "2026-02-02", "set": 1, "reps": 12, "weight": 25.0, "comment": ""}, {"date": "2026-02-02", "set": 2, "reps": 10, "weight": 30.0, "comment": ""}, {"date": "2026-02-02", "set": 3, "reps": 10, "weight": 30.0, "comment": ""}, {"date": "2026-02-13", "set": 1, "reps": 12, "weight": 25.0, "comment": ""}, {"date": "2026-02-13", "set": 2, "reps": 12, "weight": 30.0, "comment": ""}, {"date": "2026-02-13", "set": 3, "reps": 12, "weight": 35.0, "comment": ""}, {"date": "2026-02-23", "set": 1, "reps": 12, "weight": 25.0, "comment": ""}, {"date": "2026-02-23", "set": 2, "reps": 12, "weight": 35.0, "comment": ""}, {"date": "2026-02-23", "set": 3, "reps": 10, "weight": 37.5, "comment": ""}]}, "Rotational crunch w/ elbow ground": {"category": "Other", "history": [{"date": "2026-02-02", "set": 1, "reps": 45, "weight": 0.0, "comment": "Amin30s"}]}, "Bicycle crunch": {"category": "Other", "history": [{"date": "2026-02-06", "set": 1, "reps": 50, "weight": 0.0, "comment": "30/20, Legs only"}]}, "Cable crunch": {"category": "Other", "history": [{"date": "2026-02-16", "set": 1, "reps": 30, "weight": 15.0, "comment": ""}, {"date": "2026-02-16", "set": 2, "reps": 30, "weight": 15.0, "comment": ""}]}, "Vertical Jumps": {"category": "Other", "history": [{"date": "2026-02-25", "set": 1, "reps": 30, "weight": 5.0, "comment": "ES"}, {"date": "2026-02-25", "set": 2, "reps": 30, "weight": 7.5, "comment": "ES"}, {"date": "2026-02-25", "set": 3, "reps": 30, "weight": 7.5, "comment": "ES"}]}, "Deadlift (Barbell)": {"category": "Lower Body", "history": [{"date": "2026-02-27", "set": 1, "reps": 8, "weight": 25.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 8, "weight": 35.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 8, "weight": 37.5, "comment": ""}]}, "Glute Bridge": {"category": "Lower Body", "history": [{"date": "2026-02-27", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 5.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 7.5, "comment": ""}, {"date": "2026-03-04", "set": 1, "reps": 12, "weight": 7.5, "comment": ""}, {"date": "2026-03-04", "set": 2, "reps": 12, "weight": 10.0, "comment": ""}, {"date": "2026-03-04", "set": 3, "reps": 12, "weight": 10.0, "comment": ""}]}, "Overhead Triceps Extension": {"category": "Upper Body - Push", "history": [{"date": "2026-02-27", "set": 1, "reps": 8, "weight": 10.0, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 7.5, "comment": ""}, {"date": "2026-02-27", "set": 1, "reps": 12, "weight": 7.5, "comment": ""}]}, "Bench Press - Barbell": {"category": "Upper Body - Push", "history": [{"date": "2026-03-02", "set": 1, "reps": 12, "weight": 0.0, "comment": ""}, {"date": "2026-03-02", "set": 2, "reps": 12, "weight": 10.0, "comment": "ba"}, {"date": "2026-03-02", "set": 3, "reps": 12, "weight": 7.5, "comment": "ba"}]}, "Dead bug": {"category": "Other", "history": [{"date": "2026-03-04", "set": 1, "reps": 20, "weight": 0.0, "comment": ""}, {"date": "2026-03-04", "set": 2, "reps": 20, "weight": 0.0, "comment": ""}, {"date": "2026-03-04", "set": 3, "reps": 20, "weight": 0.0, "comment": ""}]}}};
+
+const sessions = DATA.sessions;
+const exercises = {};
+
+// Load saved category overrides from localStorage
+let categoryOverrides = {};
+try { categoryOverrides = JSON.parse(localStorage.getItem('categoryOverrides') || '{}'); } catch(e) {}
+
+function saveCategoryOverrides() {
+  try { localStorage.setItem('categoryOverrides', JSON.stringify(categoryOverrides)); } catch(e) {}
+}
+
+function getExerciseCategory(name, fallback) {
+  return categoryOverrides[name] || fallback || 'Other';
+}
+
+function changeCategory(exerciseName, newCat) {
+  categoryOverrides[exerciseName] = newCat;
+  saveCategoryOverrides();
+  // Update in-memory data
+  if (exercises[exerciseName]) exercises[exerciseName].category = newCat;
+  sessions.forEach(s => {
+    [...s.main, ...s.finisher].forEach(e => {
+      if (e.exercise === exerciseName) e.category = newCat;
+    });
+  });
+}
+
+// Build exercise index from sessions
+sessions.forEach(s => {
+  [...s.main, ...s.finisher].forEach(e => {
+    const cat = getExerciseCategory(e.exercise, e.category);
+    e.category = cat;
+    if (!exercises[e.exercise]) exercises[e.exercise] = {category: cat, history: []};
+    exercises[e.exercise].history.push({date: s.date, set: e.set, reps: e.reps, weight: e.weight, comment: e.comment || ''});
+  });
+});
+
+const ALL_CATEGORIES = ['Lower Body', 'Upper Body - Push', 'Upper Body - Pull', 'Core', 'Full Body / Carry', 'Other'];
+
+const catColors = {
+  'Lower Body': {bg:'#1b4332',fg:'#95d5b2',cls:'badge-lower'},
+  'Upper Body - Push': {bg:'#3d1f00',fg:'#ffb347',cls:'badge-push'},
+  'Upper Body - Pull': {bg:'#1a1040',fg:'#b8a9ff',cls:'badge-pull'},
+  'Core': {bg:'#3d0000',fg:'#ff9999',cls:'badge-core'},
+  'Full Body / Carry': {bg:'#003d3d',fg:'#99ffff',cls:'badge-carry'},
+  'Other': {bg:'#333',fg:'#aaa',cls:'badge-other'}
+};
+
+function getCatBadge(cat, exerciseName) {
+  const c = catColors[cat] || catColors['Other'];
+  if (!exerciseName) {
+    // Non-editable badge (used in tables etc.)
+    return '<span class="badge '+c.cls+'">'+cat+'</span>';
+  }
+  // Editable badge — clicking opens a dropdown
+  const id = 'cat_' + exerciseName.replace(/[^a-zA-Z0-9]/g, '_');
+  return '<span class="badge-editable '+c.cls+'" onclick="openCatEditor(event, \''+exerciseName.replace(/'/g, "\\'")+'\')" title="Click to change category">' + cat + ' <span style="opacity:0.6;font-size:9px">&#9998;</span></span>';
+}
+
+function openCatEditor(event, exerciseName) {
+  event.stopPropagation();
+  // Remove any existing editor
+  const old = document.getElementById('catEditorPopup');
+  if (old) old.remove();
+
+  const currentCat = exercises[exerciseName]?.category || 'Other';
+  const rect = event.target.getBoundingClientRect();
+
+  const popup = document.createElement('div');
+  popup.id = 'catEditorPopup';
+  popup.style.cssText = 'position:fixed;z-index:999;background:#16213e;border:1px solid #0f3460;border-radius:10px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);left:'+(rect.left)+'px;top:'+(rect.bottom+4)+'px;min-width:180px;';
+
+  ALL_CATEGORIES.forEach(cat => {
+    const cc = catColors[cat] || catColors['Other'];
+    const isActive = cat === currentCat;
+    const opt = document.createElement('div');
+    opt.style.cssText = 'padding:8px 12px;cursor:pointer;border-radius:6px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;' + (isActive ? 'background:#0f3460;' : '');
+    opt.innerHTML = '<span class="badge '+cc.cls+'" style="pointer-events:none">'+cat+'</span>' + (isActive ? ' <span style="color:#e94560">&#10003;</span>' : '');
+    opt.onmouseenter = () => opt.style.background = '#0f3460';
+    opt.onmouseleave = () => { if (!isActive) opt.style.background = 'none'; };
+    opt.onclick = (e) => {
+      e.stopPropagation();
+      changeCategory(exerciseName, cat);
+      popup.remove();
+      // Refresh current view
+      filterExercises();
+      if (document.getElementById('sessions').classList.contains('hidden') === false) filterSessions();
+      if (document.getElementById('gym').classList.contains('hidden') === false) updateGymMode();
+    };
+    popup.appendChild(opt);
+  });
+
+  document.body.appendChild(popup);
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', function closer() {
+      const p = document.getElementById('catEditorPopup');
+      if (p) p.remove();
+      document.removeEventListener('click', closer);
+    }, {once: true});
+  }, 10);
+}
+
+function getMaxWeight(exName) {
+  const hist = exercises[exName]?.history || [];
+  return Math.max(0, ...hist.map(h => h.weight));
+}
+
+function getLastSession(exName) {
+  const hist = exercises[exName]?.history || [];
+  if (!hist.length) return null;
+  const dates = [...new Set(hist.map(h => h.date))].sort();
+  const lastDate = dates[dates.length-1];
+  return hist.filter(h => h.date === lastDate);
+}
+
+function getProgression(exName) {
+  const hist = exercises[exName]?.history || [];
+  const dates = [...new Set(hist.map(h => h.date))].sort();
+  return dates.map(d => {
+    const sets = hist.filter(h => h.date === d);
+    const maxW = Math.max(...sets.map(s => s.weight));
+    return {date: d, maxWeight: maxW, sets};
+  });
+}
+
+// Dashboard
+function initDashboard() {
+  const totalSessions = sessions.length;
+  const totalExercises = Object.keys(exercises).length;
+  const allEntries = sessions.flatMap(s => s.main);
+  const heaviestEx = Object.entries(exercises).reduce((best, [name, data]) => {
+    const maxW = Math.max(0, ...data.history.map(h => h.weight));
+    return maxW > best.weight ? {name, weight: maxW} : best;
+  }, {name:'', weight:0});
+  
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-number">${totalSessions}</div><div class="stat-label">Total Sessions</div></div>
+    <div class="stat-card"><div class="stat-number">${totalExercises}</div><div class="stat-label">Unique Exercises</div></div>
+    <div class="stat-card"><div class="stat-number">${heaviestEx.weight}kg</div><div class="stat-label">Heaviest: ${heaviestEx.name}</div></div>
+    <div class="stat-card"><div class="stat-number">${allEntries.length}</div><div class="stat-label">Total Sets Logged</div></div>
+  `;
+  
+  // Populate chart dropdown with exercises that have >2 sessions
+  const sel = document.getElementById('dashChartExercise');
+  const freqExs = Object.entries(exercises)
+    .map(([name, data]) => ({name, sessions: new Set(data.history.map(h=>h.date)).size, maxW: Math.max(0,...data.history.map(h=>h.weight))}))
+    .filter(e => e.sessions >= 2 && e.maxW > 0)
+    .sort((a,b) => b.sessions - a.sessions);
+  
+  freqExs.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.name;
+    opt.textContent = e.name + ' (' + e.sessions + ' sessions)';
+    sel.appendChild(opt);
+  });
+  
+  updateDashChart();
+  initCatChart();
+}
+
+let dashChartInstance = null;
+function updateDashChart() {
+  const exName = document.getElementById('dashChartExercise').value;
+  if (!exName) return;
+  
+  const prog = getProgression(exName);
+  const labels = prog.map(p => p.date);
+  const weights = prog.map(p => p.maxWeight);
+  
+  if (dashChartInstance) dashChartInstance.destroy();
+  dashChartInstance = new Chart(document.getElementById('dashChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Max Weight (kg)',
+        data: weights,
+        borderColor: '#e94560',
+        backgroundColor: '#e9456033',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 6,
+        pointBackgroundColor: '#e94560'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#e0e0e0' } } },
+      scales: {
+        x: { ticks: { color: '#8899aa' }, grid: { color: '#0f346033' } },
+        y: { ticks: { color: '#8899aa' }, grid: { color: '#0f346033' }, title: { display: true, text: 'kg', color: '#8899aa' } }
+      }
+    }
+  });
+}
+
+function initCatChart() {
+  const catCounts = {};
+  Object.values(exercises).forEach(e => {
+    const cat = e.category || 'Other';
+    catCounts[cat] = (catCounts[cat] || 0) + e.history.length;
+  });
+  
+  new Chart(document.getElementById('catChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catCounts),
+      datasets: [{
+        data: Object.values(catCounts),
+        backgroundColor: Object.keys(catCounts).map(c => catColors[c]?.fg || '#aaa')
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#e0e0e0', padding: 12 } } }
+    }
+  });
+}
+
+// Exercises tab
+function filterExercises() {
+  const cat = document.getElementById('catFilter').value;
+  const search = document.getElementById('searchEx').value.toLowerCase();
+  
+  const list = document.getElementById('exerciseList');
+  list.innerHTML = '';
+  
+  Object.entries(exercises)
+    .filter(([name, data]) => {
+      if (cat !== 'all' && data.category !== cat) return false;
+      if (search && !name.toLowerCase().includes(search)) return false;
+      return true;
+    })
+    .sort((a,b) => {
+      const aSessions = new Set(a[1].history.map(h=>h.date)).size;
+      const bSessions = new Set(b[1].history.map(h=>h.date)).size;
+      return bSessions - aSessions;
+    })
+    .forEach(([name, data]) => {
+      const maxW = Math.max(0, ...data.history.map(h => h.weight));
+      const sessionCount = new Set(data.history.map(h => h.date)).size;
+      const last = getLastSession(name);
+      const lastWeight = last ? Math.max(...last.map(s=>s.weight)) : 0;
+      
+      const card = document.createElement('div');
+      card.className = 'exercise-card';
+      card.onclick = () => showExerciseDetail(name);
+      card.innerHTML = `
+        <h4>${name}</h4>
+        <div class="meta">${getCatBadge(data.category, name)} &middot; ${sessionCount} sessions</div>
+        <div class="weight-info">Last: ${lastWeight}kg &middot; Max: ${maxW}kg</div>
+      `;
+      list.appendChild(card);
+    });
+}
+
+let detailChartInstance = null;
+function showExerciseDetail(name) {
+  const el = document.getElementById('exerciseDetail');
+  el.classList.remove('hidden');
+  document.getElementById('detailTitle').innerHTML = name + ' ' + getCatBadge(exercises[name].category, name);
+  
+  const prog = getProgression(name);
+  
+  if (detailChartInstance) detailChartInstance.destroy();
+  detailChartInstance = new Chart(document.getElementById('detailChart'), {
+    type: 'line',
+    data: {
+      labels: prog.map(p => p.date),
+      datasets: [{
+        label: 'Max Weight (kg)',
+        data: prog.map(p => p.maxWeight),
+        borderColor: '#e94560',
+        backgroundColor: '#e9456033',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 6,
+        pointBackgroundColor: '#e94560'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#e0e0e0' } } },
+      scales: {
+        x: { ticks: { color: '#8899aa' }, grid: { color: '#0f346033' } },
+        y: { ticks: { color: '#8899aa' }, grid: { color: '#0f346033' } }
+      }
+    }
+  });
+  
+  // Detail table
+  let tableHtml = '<thead><tr><th>Date</th><th>Set</th><th>Reps</th><th>Weight</th><th>Comment</th></tr></thead><tbody>';
+  prog.forEach(p => {
+    p.sets.forEach(s => {
+      tableHtml += '<tr><td>'+s.date+'</td><td>'+s.set+'</td><td>'+s.reps+'</td><td>'+s.weight+'kg</td><td>'+s.comment+'</td></tr>';
+    });
+  });
+  tableHtml += '</tbody>';
+  document.getElementById('detailTable').innerHTML = tableHtml;
+  
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+// Sessions tab
+function initSessions() {
+  const sel = document.getElementById('sessionFilter');
+  // Add sessions in reverse chronological order (latest first)
+  const sortedSessions = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
+  sortedSessions.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.date;
+    opt.textContent = s.display_date;
+    sel.appendChild(opt);
+  });
+  // Default to the latest session
+  sel.value = sortedSessions[0].date;
+  filterSessions();
+}
+
+function filterSessions() {
+  const val = document.getElementById('sessionFilter').value;
+  const list = document.getElementById('sessionsList');
+  list.innerHTML = '';
+  
+  const filtered = val === 'all' ? sessions : sessions.filter(s => s.date === val);
+  
+  filtered.forEach(s => {
+    let html = '<div class="card"><h3>'+s.display_date+'</h3>';
+    
+    if (s.warmup.length) {
+      html += '<p style="color:#8899aa;margin:8px 0 4px">Warm-up: '+s.warmup.map(e=>e.exercise).join(', ')+'</p>';
+    }
+    
+    if (s.main.length) {
+      html += '<table><thead><tr><th>Exercise</th><th>Cat</th><th>Set</th><th>Reps</th><th>Weight</th><th>Comment</th></tr></thead><tbody>';
+      s.main.forEach(e => {
+        html += '<tr><td>'+e.exercise+'</td><td>'+getCatBadge(e.category||'Other', e.exercise)+'</td><td>'+e.set+'</td><td>'+e.reps+'</td><td>'+(e.weight>0?e.weight+'kg':'-')+'</td><td>'+(e.comment||'')+'</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    
+    if (s.finisher.length) {
+      html += '<p style="color:#8899aa;margin:12px 0 4px">Finisher:</p><table><thead><tr><th>Exercise</th><th>Reps</th><th>Weight</th></tr></thead><tbody>';
+      s.finisher.forEach(e => {
+        html += '<tr><td>'+e.exercise+'</td><td>'+e.reps+'</td><td>'+(e.weight>0?e.weight+'kg':'-')+'</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    
+    html += '</div>';
+    list.innerHTML += html;
+  });
+}
+
+// Gym Mode
+function initGymMode() {
+  const sel = document.getElementById('gymExercise');
+  Object.entries(exercises)
+    .sort((a,b) => a[0].localeCompare(b[0]))
+    .forEach(([name, data]) => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  updateGymMode();
+}
+
+function updateGymMode() {
+  const name = document.getElementById('gymExercise').value;
+  if (!name) return;
+  
+  const data = exercises[name];
+  const prog = getProgression(name);
+  const last = prog[prog.length - 1];
+  const prev = prog.length > 1 ? prog[prog.length - 2] : null;
+  
+  const lastMaxW = last ? last.maxWeight : 0;
+  const prevMaxW = prev ? prev.maxWeight : 0;
+  const change = lastMaxW - prevMaxW;
+  
+  let suggestion = '';
+  if (lastMaxW > 0) {
+    const sameW = lastMaxW;
+    const upW = Math.round((lastMaxW * 1.05) * 2) / 2; // round to 0.5
+    suggestion = `
+      <div class="suggestion">
+        <strong>Suggestion for today:</strong><br>
+        Same weight: <strong>${sameW}kg</strong> &middot; 
+        Progress (+5%): <strong>${upW}kg</strong>
+      </div>
+    `;
+  }
+  
+  let setsHtml = '';
+  if (last) {
+    setsHtml = '<div style="margin-top:20px">';
+    setsHtml += '<p style="color:#8899aa;margin-bottom:10px;font-size:14px">Last session ('+last.date+'):</p>';
+    last.sets.forEach(s => {
+      setsHtml += '<div class="gym-set-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #0f346033">';
+      setsHtml += '<span style="color:#8899aa;font-size:14px;min-width:50px">Set '+s.set+'</span>';
+      setsHtml += '<span style="font-size:18px;font-weight:600;min-width:70px;text-align:center"><strong>'+s.reps+'</strong> <span style="color:#8899aa;font-size:13px">reps</span></span>';
+      setsHtml += '<span style="font-size:18px;font-weight:600;min-width:80px;text-align:right;color:#e94560"><strong>'+s.weight+'</strong> <span style="font-size:13px">kg</span></span>';
+      setsHtml += '</div>';
+      if (s.comment) setsHtml += '<div style="color:#8899aa;font-style:italic;font-size:13px;padding:4px 0 8px 50px">'+s.comment+'</div>';
+    });
+    setsHtml += '</div>';
+  }
+  
+  let historyHtml = '<div style="margin-top:20px"><h3 style="color:#e94560;margin-bottom:12px">History</h3>';
+  prog.slice().reverse().forEach(p => {
+    historyHtml += '<div style="padding:8px 0;border-bottom:1px solid #0f346033"><strong style="color:#8899aa">'+p.date+'</strong> - Max: <strong>'+p.maxWeight+'kg</strong>';
+    historyHtml += ' ('+p.sets.map(s=>s.reps+'x'+s.weight+'kg').join(', ')+')</div>';
+  });
+  historyHtml += '</div>';
+  
+  document.getElementById('gymContent').innerHTML = `
+    <div class="gym-card">
+      <h2>${name}</h2>
+      <div>${getCatBadge(data.category, name)}</div>
+      <div class="last-weight" style="margin-top:16px">${lastMaxW}kg</div>
+      <div class="last-detail">
+        Last max weight${change !== 0 ? ' <span class="progress-arrow '+(change>0?'progress-up':'progress-down')+'">'+(change>0?'\u25B2':'\u25BC')+' '+Math.abs(change)+'kg</span>' : ''}
+      </div>
+      ${suggestion}
+      ${setsHtml}
+    </div>
+    ${historyHtml}
+  `;
+}
+
+// Tab switching
+function showTab(tab) {
+  document.querySelectorAll('.content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(tab).classList.remove('hidden');
+  event.target.classList.add('active');
+}
+
+// ========== BODY MAP ==========
+
+// Exercise → muscle group mapping
+const exerciseMuscles = {
+  'Squat': ['quads','glutes','hamstrings','core'],
+  'Goblet Squat': ['quads','glutes','core'],
+  'Curtsy Squat': ['quads','glutes','adductors'],
+  'Resistance Band Squats': ['quads','glutes'],
+  'Leg Press': ['quads','glutes','hamstrings'],
+  'Reverse Lunges': ['quads','glutes','hamstrings'],
+  'Hip Thrusters': ['glutes','hamstrings'],
+  'Glute Bridge': ['glutes','hamstrings'],
+  'Romanian Deadlift': ['hamstrings','glutes','lower_back'],
+  'Trap Bar Deadlift': ['quads','glutes','hamstrings','lower_back','traps'],
+  'Deadlift (Barbell)': ['hamstrings','glutes','lower_back','traps','quads'],
+  'Barbell Back Squat': ['quads','glutes','hamstrings','core'],
+  'Hamstring Curls': ['hamstrings'],
+  'Cable Pull Throughs': ['glutes','hamstrings'],
+  'Squat to Shoulder Press (Thrusters)': ['quads','glutes','shoulders','triceps','core'],
+  'Barbell/Dumbbell Clean': ['quads','glutes','hamstrings','traps','shoulders','core'],
+  'Machine Chest Press': ['chest','triceps','shoulders'],
+  'Chest Press - Dumbbell': ['chest','triceps','shoulders'],
+  'Bench Press - Barbell': ['chest','triceps','shoulders'],
+  'Push Ups - Eccentric': ['chest','triceps','shoulders','core'],
+  'Push Ups - Wall/Bench': ['chest','triceps','shoulders'],
+  'Chest Flies - Cable': ['chest','shoulders'],
+  'Shoulder Press - Machine': ['shoulders','triceps'],
+  'Frontal Raises': ['shoulders'],
+  'Overhead Triceps Extension': ['triceps'],
+  'Lat Pull - Pronated': ['lats','biceps','upper_back'],
+  'Lat Pull - Supinated': ['lats','biceps','upper_back'],
+  'Lat Pull - Neutral Grip': ['lats','biceps','upper_back'],
+  'Seated Row - Eccentric': ['upper_back','lats','biceps'],
+  'Seated Cable Row - Pronated': ['upper_back','lats','biceps'],
+  'Bent Over Row - Dumbbell': ['upper_back','lats','biceps','lower_back'],
+  'Band Assisted Pull Ups': ['lats','biceps','upper_back'],
+  'Banded Single Arm Row': ['upper_back','lats','biceps'],
+  'Bicep Curl - Dumbbell': ['biceps'],
+  'Bicep Curl - Resistance Band': ['biceps'],
+  'Dead Bug': ['core'],
+  'Bird Dog': ['core','lower_back'],
+  'Hanging Knee Tucks': ['core','hip_flexors'],
+  'Rotational Crunch': ['core','obliques'],
+  "Farmer's Walk": ['traps','forearms','core'],
+  'Kettlebell Swing': ['glutes','hamstrings','core','shoulders'],
+};
+
+const prettyMuscleNames = {
+  quads:'Quadriceps', glutes:'Glutes', hamstrings:'Hamstrings', chest:'Pectorals',
+  shoulders:'Deltoids', triceps:'Triceps', biceps:'Biceps', lats:'Latissimus Dorsi',
+  upper_back:'Upper Back', lower_back:'Lower Back', core:'Abs / Core',
+  obliques:'External Obliques', traps:'Trapezius', forearms:'Forearms', calves:'Calves',
+  adductors:'Adductors', hip_flexors:'Hip Flexors', shins:'Tibialis Anterior'
+};
+
+function computeMuscleHeat() {
+  const counts = {};
+  sessions.forEach(s => {
+    [...s.main, ...s.finisher].forEach(e => {
+      const muscles = exerciseMuscles[e.exercise] || [];
+      muscles.forEach(m => { counts[m] = (counts[m] || 0) + 1; });
+    });
+  });
+  return counts;
+}
+
+function heatColor(value, max) {
+  if (max === 0) return '#1a1a2e';
+  const t = Math.min(value / max, 1);
+  // Dark blue (#1a1a2e) → deep pink (#e94560) gradient
+  const r = Math.round(26 + t * 207);
+  const g = Math.round(26 + t * (69 - 26) * (1 - t * 0.3));
+  const b = Math.round(46 + t * (96 - 46) * (1 - t * 0.5));
+  return `rgb(${r},${g},${b})`;
+}
+
+function heatColorSolid(value, max) {
+  return heatColor(value, max);
+}
+
+function initBodyMap() {
+  const heat = computeMuscleHeat();
+  const maxHeat = Math.max(1, ...Object.values(heat));
+
+  // Color all muscle zones by heat intensity
+  document.querySelectorAll('.muscle-zone').forEach(el => {
+    const muscleId = el.dataset.muscle;
+    const label = el.dataset.label;
+    const heatVal = heat[muscleId] || 0;
+    const color = heatColor(heatVal, maxHeat);
+
+    el.setAttribute('fill', color);
+    el.setAttribute('data-base-color', color);
+    el.setAttribute('data-heat', heatVal);
+
+    // Tooltip on hover
+    el.addEventListener('mouseenter', (ev) => {
+      const tip = document.getElementById('muscleTooltip');
+      document.getElementById('tooltipName').textContent = label;
+      document.getElementById('tooltipInfo').textContent = heatVal > 0 ? heatVal + ' total sets across your workouts' : 'Not targeted in your workouts yet';
+      tip.style.display = 'block';
+      moveTip(ev);
+      // Highlight all instances of this muscle
+      document.querySelectorAll('[data-muscle="' + muscleId + '"]').forEach(m => m.classList.add('zone-hover'));
+    });
+    el.addEventListener('mousemove', moveTip);
+    el.addEventListener('mouseleave', () => {
+      document.getElementById('muscleTooltip').style.display = 'none';
+      document.querySelectorAll('.zone-hover').forEach(m => m.classList.remove('zone-hover'));
+    });
+    el.addEventListener('click', (ev) => {
+      showMuscleDetail(muscleId, label);
+      // Flash tooltip on tap for mobile
+      const tip = document.getElementById('muscleTooltip');
+      document.getElementById('tooltipName').textContent = label;
+      document.getElementById('tooltipInfo').textContent = heatVal > 0 ? heatVal + ' total sets' : 'Not tracked';
+      tip.style.display = 'block';
+      moveTip(ev);
+      setTimeout(() => { tip.style.display = 'none'; }, 2500);
+    });
+  });
+
+  // Category buttons
+  const btnContainer = document.getElementById('bodyMapCatButtons');
+  btnContainer.innerHTML = '';
+  ALL_CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.textContent = cat;
+    btn.onclick = () => highlightCategoryMuscles(cat, btn);
+    btnContainer.appendChild(btn);
+  });
+
+  // Exercise dropdown
+  const sel = document.getElementById('bodyMapExercise');
+  sel.innerHTML = '<option value="">-- Choose an exercise --</option>';
+  Object.keys(exercises).sort().forEach(ex => {
+    if (exerciseMuscles[ex]) {
+      const opt = document.createElement('option');
+      opt.value = ex;
+      opt.textContent = ex;
+      sel.appendChild(opt);
+    }
+  });
+
+  initMuscleChart(heat);
+}
+
+function moveTip(ev) {
+  const tip = document.getElementById('muscleTooltip');
+  const x = (ev.touches ? ev.touches[0].clientX : ev.clientX) + 15;
+  const y = (ev.touches ? ev.touches[0].clientY : ev.clientY) - 10;
+  tip.style.left = Math.min(x, window.innerWidth - 200) + 'px';
+  tip.style.top = Math.max(y, 5) + 'px';
+}
+
+function resetMuscleZones() {
+  document.querySelectorAll('.muscle-zone').forEach(el => {
+    el.classList.remove('zone-highlighted');
+    el.setAttribute('fill', el.getAttribute('data-base-color'));
+    el.style.opacity = '';
+  });
+}
+
+function highlightExerciseMuscles() {
+  const exName = document.getElementById('bodyMapExercise').value;
+  resetMuscleZones();
+
+  const listEl = document.getElementById('exerciseMuscleList');
+  if (!exName) { listEl.innerHTML = ''; return; }
+
+  const muscles = exerciseMuscles[exName] || [];
+  if (!muscles.length) {
+    listEl.innerHTML = '<span style="color:#8899aa">No muscle mapping for this exercise.</span>';
+    return;
+  }
+
+  // Dim all muscles, then highlight targeted ones
+  document.querySelectorAll('.muscle-zone').forEach(el => { el.style.opacity = '0.15'; });
+  muscles.forEach(mId => {
+    document.querySelectorAll('[data-muscle="' + mId + '"]').forEach(el => {
+      el.classList.add('zone-highlighted');
+      el.setAttribute('fill', '#e94560');
+      el.style.opacity = '1';
+    });
+  });
+
+  const names = muscles.map(m => '<span style="background:#e9456022;border:1px solid #e9456066;color:#e94560;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500">' + (prettyMuscleNames[m] || m) + '</span>');
+  listEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">' + names.join('') + '</div>';
+}
+
+function showMuscleDetail(muscleId, label) {
+  const el = document.getElementById('muscleDetail');
+  el.classList.remove('hidden');
+  document.getElementById('muscleDetailTitle').textContent = label;
+
+  const targeting = [];
+  Object.entries(exerciseMuscles).forEach(([ex, muscles]) => {
+    if (muscles.includes(muscleId) && exercises[ex]) {
+      const sessionCount = new Set(exercises[ex].history.map(h => h.date)).size;
+      const maxW = Math.max(0, ...exercises[ex].history.map(h => h.weight));
+      targeting.push({name: ex, sessions: sessionCount, maxWeight: maxW, category: exercises[ex].category});
+    }
+  });
+  targeting.sort((a, b) => b.sessions - a.sessions);
+
+  let html = '<table><thead><tr><th>Exercise</th><th>Category</th><th>Sessions</th><th>Max Weight</th></tr></thead><tbody>';
+  targeting.forEach(t => {
+    html += '<tr><td>' + t.name + '</td><td>' + getCatBadge(t.category, t.name) + '</td><td>' + t.sessions + '</td><td>' + t.maxWeight + 'kg</td></tr>';
+  });
+  if (!targeting.length) html += '<tr><td colspan="4" style="color:#8899aa">No exercises tracked for this muscle</td></tr>';
+  html += '</tbody></table>';
+
+  document.getElementById('muscleDetailContent').innerHTML = html;
+  el.scrollIntoView({behavior: 'smooth'});
+}
+
+function highlightCategoryMuscles(cat, btn) {
+  const isActive = btn.classList.contains('active');
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  resetMuscleZones();
+
+  if (isActive) return;
+  btn.classList.add('active');
+
+  const targetMuscles = new Set();
+  Object.entries(exerciseMuscles).forEach(([ex, muscles]) => {
+    if (exercises[ex] && exercises[ex].category === cat) {
+      muscles.forEach(m => targetMuscles.add(m));
+    }
+  });
+
+  // Dim all, highlight targeted
+  document.querySelectorAll('.muscle-zone').forEach(el => { el.style.opacity = '0.15'; });
+  targetMuscles.forEach(m => {
+    document.querySelectorAll('[data-muscle="' + m + '"]').forEach(el => {
+      el.classList.add('zone-highlighted');
+      el.setAttribute('fill', '#e94560');
+      el.style.opacity = '1';
+    });
+  });
+}
+
+function initMuscleChart(heat) {
+  const labels = Object.keys(heat).sort((a,b) => heat[b] - heat[a]);
+  const values = labels.map(l => heat[l]);
+  const maxV = Math.max(...values);
+  const colors = values.map(v => heatColor(v, maxV));
+
+  new Chart(document.getElementById('muscleChart'), {
+    type: 'bar',
+    data: {
+      labels: labels.map(l => prettyMuscleNames[l] || l),
+      datasets: [{
+        label: 'Total sets targeting muscle',
+        data: values,
+        backgroundColor: '#e9456088',
+        borderColor: '#e94560',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8899aa' }, grid: { color: '#0f346033' } },
+        y: { ticks: { color: '#e0e0e0', font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// Init
+initDashboard();
+filterExercises();
+initSessions();
+initGymMode();
+initBodyMap();
+
+// ========== PWA Service Worker (inline) ==========
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE_NAME = 'workout-tracker-v1';
+    const URLS_TO_CACHE = [
+      './',
+      'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'
+    ];
+
+    self.addEventListener('install', event => {
+      event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
+      );
+      self.skipWaiting();
+    });
+
+    self.addEventListener('activate', event => {
+      event.waitUntil(
+        caches.keys().then(keys => Promise.all(
+          keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        ))
+      );
+      self.clients.claim();
+    });
+
+    self.addEventListener('fetch', event => {
+      event.respondWith(
+        caches.match(event.request).then(cached => cached || fetch(event.request).then(resp => {
+          const clone = resp.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return resp;
+        }))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).then(reg => {
+    console.log('SW registered');
+  }).catch(err => {
+    console.log('SW registration failed (expected for file:// URLs, works when served via HTTP)');
+  });
+}
+
+// ========== PWA Install Prompt ==========
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.classList.add('show');
+});
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(result => {
+    deferredPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  });
+}
+</script>
+</body>
+</html>
